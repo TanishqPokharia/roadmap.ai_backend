@@ -1,6 +1,6 @@
-type Either<T> = {
-  data: T;
+type DataOrError<T> = {
+  data: T | null;
   error: Error | null;
 };
 
-export default Either;
+export default DataOrError;
