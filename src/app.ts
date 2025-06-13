@@ -7,17 +7,26 @@ import { registerDependencies } from "./utils/register.dependencies";
 registerDependencies();
 
 import express from "express";
-import morgan from "morgan";
+// import morgan from "morgan";
 import pino from "pino-http";
 import logger from "./utils/logger";
 import v1Router from "./routes/v1/index";
+import mongoose from "mongoose";
 const app = express();
-app.use(morgan("dev"));
 app.use(pino());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use("/api/v1", v1Router);
+
+mongoose
+  .connect(`${process.env.DB_URL}`)
+  .then((result) => {
+    logger.info("Connected to MongoDB successfully");
+  })
+  .catch((error) => {
+    logger.fatal("Failed to connect to MongoDB:", error);
+  });
 
 app.listen(3000, () => {
   logger.info("Server is running on port 3000");
