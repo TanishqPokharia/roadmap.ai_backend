@@ -1,15 +1,15 @@
 import { Types } from "mongoose";
+import IRoadmapGoal from "./roadmap.goal";
 
-interface IRoadmapSubgoal {
+interface IRoadmap {
   _id: Types.ObjectId;
-  resources: string[];
-  description: string;
-  duration: string;
   title: string;
+  goals: IRoadmapGoal[];
+  userId: Types.ObjectId;
   status: {
     completed: boolean;
     completedAt: Date | null;
   };
 }
 
-export default IRoadmapSubgoal;
+export default IRoadmap;

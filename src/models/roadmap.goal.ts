@@ -1,8 +1,10 @@
-import RoadmapSubgoalModel from "./roadmap.subgoal";
+import { Types } from "mongoose";
+import IRoadmapSubgoal from "./roadmap.subgoal";
 
-interface RoadmapGoalModel {
-  goal: string;
-  subgoals: RoadmapSubgoalModel[];
+interface IRoadmapGoal {
+  _id: Types.ObjectId;
+  title: string;
+  subgoals: IRoadmapSubgoal[];
 }
 
-export default RoadmapGoalModel;
+export default IRoadmapGoal;
