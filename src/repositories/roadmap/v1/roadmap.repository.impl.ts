@@ -120,7 +120,7 @@ class V1RoadmapRepository implements IRoadmapRepository {
       const contentPrompt = process.env.CONTENT_PROMPT as string;
       const systemInstruction = process.env.SYSTEM_INSTRUCTION as string;
       const response = await ai.models.generateContent({
-        model: "gemini-2.0-flash",
+        model: "gemini-1.5-flash",
         contents: `
         Generate a detailed roadmap for learning: "${topic}".
     

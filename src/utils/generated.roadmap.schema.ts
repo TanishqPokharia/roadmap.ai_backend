@@ -2,32 +2,36 @@ import { Schema, Type } from "@google/genai";
 
 const responseSchema: Schema = {
   type: Type.OBJECT,
-  required: ["title", "roadmap"],
+  required: ["roadmap"],
   properties: {
-    title: {
-      type: Type.STRING,
-      description: "The title of the roadmap.",
-      maximum: 50,
-    },
     roadmap: {
-      type: Type.ARRAY,
-      maxItems: "10",
-      items: {
-        type: Type.OBJECT,
-
-        properties: {
-          goal: {
+      type: Type.OBJECT,
+      required: ["title", "goals"],
+      properties: {
+        title: {
+          type: Type.STRING,
+          description: "The title of the roadmap.",
+          minLength: "10",
+          maxLength: "60",
+        },
+        goals: {
+          type: Type.ARRAY,
+          description: "Array of goals to complete in this roadmap.",
+          minItems: "1",
+          items: {
             type: Type.OBJECT,
-            description: "One of the goals to complete in this roadmap.",
             required: ["title", "subgoals"],
-
             properties: {
               title: {
                 type: Type.STRING,
-                description: "The title of the goal.",
+                description: "The title of the goal to be completed.",
+                minLength: "10",
+                maxLength: "100",
               },
               subgoals: {
                 type: Type.ARRAY,
+                description: "Array of subgoals to complete in this goal.",
+                minItems: "1",
                 items: {
                   type: Type.OBJECT,
                   required: ["title", "description", "duration", "resources"],
@@ -44,7 +48,7 @@ const responseSchema: Schema = {
                     duration: {
                       type: Type.STRING,
                       description:
-                        "Recommended duration to finish this subgoal in days.",
+                        "Recommended duration to finish this subgoal in days, weeks, or months only.",
                     },
                     resources: {
                       type: Type.ARRAY,
@@ -64,5 +68,4 @@ const responseSchema: Schema = {
     },
   },
 };
-
 export default responseSchema;

@@ -1,12 +1,7 @@
-import { Response, NextFunction } from "express";
+import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
-import AuthenticatedRequest from "../models/authenticated.request";
 import logger from "../utils/logger";
-const checkToken = (
-  req: AuthenticatedRequest,
-  res: Response,
-  next: NextFunction
-) => {
+const checkToken = (req: Request, res: Response, next: NextFunction) => {
   try {
     const auth = req.headers.authorization?.split(" ");
     if (!auth || auth.at(0) !== "Bearer" || !auth.at(1)) {
