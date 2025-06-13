@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
-import RoadmapGoal, { roadmapGoalSchema } from "./roadmap.goal";
 import IRoadmap from "../models/roadmap";
+import roadmapGoalSchema from "./roadmap.goal";
 
 type RoadmapDocument = mongoose.Document & IRoadmap;
 
@@ -20,17 +20,6 @@ export const roadmapSchema = new mongoose.Schema<RoadmapDocument>({
     type: [roadmapGoalSchema],
     required: true,
   },
-
-  status: new mongoose.Schema({
-    completed: {
-      type: Boolean,
-      default: false,
-    },
-    completedAt: {
-      type: Date,
-      default: null,
-    },
-  }),
 });
 
 const Roadmap = mongoose.model<RoadmapDocument>("Roadmap", roadmapSchema);

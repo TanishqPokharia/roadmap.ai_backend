@@ -1,10 +1,11 @@
 import mongoose from "mongoose";
-import { roadmapSubgoalSchema } from "./roadmap.subgoal";
 import IRoadmapGoal from "../models/roadmap.goal";
+import { roadmapSchema } from "./roadmap";
+import roadmapSubgoalSchema from "./roadmap.subgoal";
 
 type RoadmapGoalDocument = mongoose.Document & IRoadmapGoal;
 
-export const roadmapGoalSchema = new mongoose.Schema<RoadmapGoalDocument>({
+const roadmapGoalSchema = new mongoose.Schema<RoadmapGoalDocument>({
   title: {
     type: String,
     required: true,
@@ -14,11 +15,13 @@ export const roadmapGoalSchema = new mongoose.Schema<RoadmapGoalDocument>({
   subgoals: {
     type: [roadmapSubgoalSchema],
     required: true,
+    validate: {
+      validator: function (v: any[]) {
+        return v.length > 0; // Ensure at least one subgoal is present
+      },
+      message: "At least one subgoal is required for each goal.",
+    },
   },
 });
 
-const RoadmapGoal = mongoose.model<RoadmapGoalDocument>(
-  "RoadmapGoal",
-  roadmapGoalSchema
-);
-export default RoadmapGoal;
+export default roadmapGoalSchema;
