@@ -34,7 +34,6 @@ class V1PostController implements IPostController {
   };
   getPostsByTitle = async (req: Request, res: Response): Promise<void> => {
     const { title, limit, offset } = req.query;
-
     // validate params
     const postTitleSchema = z.object({
       title: z.string().min(10, "Proper title is required").max(100),
@@ -67,7 +66,7 @@ class V1PostController implements IPostController {
     res.status(200).json({ posts });
   };
   uploadPost = async (req: Request, res: Response): Promise<void> => {
-    const userId = req.params.userId;
+    const userId = req.token;
     const { title, roadmap } = req.body;
 
     // validate params
@@ -140,7 +139,7 @@ class V1PostController implements IPostController {
     res.status(200).json({ posts });
   };
   togglePostLike = async (req: Request, res: Response): Promise<void> => {
-    const userId = req.params.userId;
+    const userId = req.token;
     const postId = req.params.postId;
 
     // validate params

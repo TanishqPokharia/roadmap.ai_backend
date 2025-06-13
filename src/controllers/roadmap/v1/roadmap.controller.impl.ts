@@ -1,26 +1,21 @@
-import { Response } from "express";
+import { Request, Response } from "express";
 import { inject, injectable } from "tsyringe";
 
 import logger from "../../../utils/logger";
 import IRoadmapController from "../roadmap.controller.interface";
 import IRoadmapRepository from "../../../repositories/roadmap/roadmap.repository.interface";
 import { z } from "zod/v4";
-import AuthenticatedRequest from "../../../models/authenticated.request";
 
 @injectable()
 class V1RoadmapController implements IRoadmapController {
   constructor(@inject("RoadmapRepository") private repo: IRoadmapRepository) {}
-  saveRoadmap = async (
-    req: AuthenticatedRequest,
-    res: Response
-  ): Promise<void> => {
+  saveRoadmap = async (req: Request, res: Response): Promise<void> => {
     const userId = req.token;
     const { roadmap } = req.body;
 
     const saveRoadmapSchema = z.object({
       userId: z.string().min(1, "User ID is required."),
       roadmap: z.object({
-        id: z.string().min(1, "Roadmap ID is required"),
         title: z.string().min(1, "Roadmap title is required").max(100),
         goals: z.array(z.any()).min(1, "Roadmap must have at least one goal"),
       }),
@@ -35,49 +30,31 @@ class V1RoadmapController implements IRoadmapController {
     }
     const validated = validatedRoadmap.data;
 
-    const savedRoadmap = await this.repo.saveRoadmap(validated.userId, roadmap);
-    if (savedRoadmap.error) {
-      logger.error("Error saving roadmap:", savedRoadmap.error);
-      res.status(500).json({ error: savedRoadmap.error });
+    const { data, error } = await this.repo.saveRoadmap(
+      validated.userId,
+      roadmap
+    );
+    if (error) {
+      logger.error("Error saving roadmap:", error);
+      res.status(500).json({ error: error.message });
       return;
     }
 
     res.status(200).json({ message: "Roadmap saved successfully." });
   };
 
-  deleteRoadmap = async (
-    req: AuthenticatedRequest,
-    res: Response
-  ): Promise<void> => {
+  deleteRoadmap = async (req: Request, res: Response): Promise<void> => {
     const { roadmapId } = req.params;
-    const deleteRoadmapSchema = z.object({
-      roadmap: z.object({
-        id: z.string().min(1, "Roadmap ID is required"),
-        title: z.string().min(1, "Roadmap title is required").max(100),
-        goals: z.array(z.any()).min(1, "Roadmap must have at least one goal"),
-      }),
-    });
 
-    const validatedRoadmap = deleteRoadmapSchema.safeParse({
-      roadmap: { id: roadmapId },
-    });
-    if (!validatedRoadmap.success) {
-      res.status(400).json({ error: z.prettifyError(validatedRoadmap.error) });
-      return;
-    }
-
-    const deletedRoadmap = await this.repo.deleteRoadmap(roadmapId);
-    if (deletedRoadmap.error) {
-      logger.error("Error deleting roadmap:", deletedRoadmap.error);
-      res.status(500).json({ error: deletedRoadmap.error });
+    const { data, error } = await this.repo.deleteRoadmap(roadmapId);
+    if (error) {
+      logger.error("Error deleting roadmap:", error);
+      res.status(500).json({ error: error.message });
       return;
     }
     res.status(200).json({ message: "Roadmap deleted successfully." });
   };
-  getPrivateRoadmaps = async (
-    req: AuthenticatedRequest,
-    res: Response
-  ): Promise<void> => {
+  getPrivateRoadmaps = async (req: Request, res: Response): Promise<void> => {
     const userId = req.token;
     const { limit, skip } = req.query;
 
@@ -104,13 +81,13 @@ class V1RoadmapController implements IRoadmapController {
     );
     if (error) {
       logger.error("Error fetching private roadmaps:", error);
-      res.status(500).json({ error: "Failed to fetch private roadmaps." });
+      res.status(500).json({ error: error.message });
       return;
     }
     res.status(200).json({ roadmaps });
   };
   setRoadmapSubgoalStatus = async (
-    req: AuthenticatedRequest,
+    req: Request,
     res: Response
   ): Promise<void> => {
     const { roadmapId, subgoalId, goalId } = req.params;
@@ -134,23 +111,20 @@ class V1RoadmapController implements IRoadmapController {
       return;
     }
 
-    const result = await this.repo.setRoadmapSubgoalStatus(
+    const { data, error } = await this.repo.setRoadmapSubgoalStatus(
       roadmapId,
       goalId,
       subgoalId,
       status
     );
-    if (result.error) {
-      logger.error("Error setting subgoal status:", result.error);
-      res.status(500).json({ error: "Failed to set subgoal status." });
+    if (error) {
+      logger.error("Error setting subgoal status:", error);
+      res.status(500).json({ error: error.message });
       return;
     }
     res.status(200).json({ message: "Subgoal status updated successfully." });
   };
-  generateRoadmap = async (
-    req: AuthenticatedRequest,
-    res: Response
-  ): Promise<void> => {
+  generateRoadmap = async (req: Request, res: Response): Promise<void> => {
     logger.info("Generating roadmap...");
     const { topic } = req.query;
     if (typeof topic !== "string" || topic.trim() === "") {
@@ -162,7 +136,7 @@ class V1RoadmapController implements IRoadmapController {
     const { data: roadmap, error } = await this.repo.generateRoadmap(topic);
 
     if (error) {
-      res.status(500).json({ error: "Failed to generate roadmap." });
+      res.status(500).json({ error: error.message });
       return;
     }
 
