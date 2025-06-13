@@ -48,6 +48,10 @@ class V1RoadmapController implements IRoadmapController {
 
     const { data, error } = await this.repo.deleteRoadmap(roadmapId);
     if (error) {
+      if (error.message.includes("not found")) {
+        res.status(404).json({ error: error.message });
+        return;
+      }
       logger.error("Error deleting roadmap:", error);
       res.status(500).json({ error: error.message });
       return;

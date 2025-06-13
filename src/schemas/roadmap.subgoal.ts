@@ -40,12 +40,21 @@ const roadmapSubgoalSchema = new mongoose.Schema<RoadmapSubgoalDocument>({
       completedAt: {
         type: Date,
         default: null,
-        required: true,
       },
     }),
     default: { completed: false, completedAt: null },
     required: true,
   },
+});
+
+roadmapSubgoalSchema.pre("save", function (next) {
+  if (!this.status.completed) {
+    this.status.completed = false;
+  }
+  if (this.status.completedAt === undefined) {
+    this.status.completedAt = null;
+  }
+  next();
 });
 
 export default roadmapSubgoalSchema;
