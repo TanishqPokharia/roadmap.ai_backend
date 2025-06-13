@@ -80,6 +80,7 @@ class V1RoadmapRepository implements IRoadmapRepository {
       };
     }
   }
+
   async setRoadmapSubgoalStatus(
     roadmapId: string,
     goalId: string,

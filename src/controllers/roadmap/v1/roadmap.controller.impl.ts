@@ -95,10 +95,15 @@ class V1RoadmapController implements IRoadmapController {
     res: Response
   ): Promise<void> => {
     const { roadmapId, subgoalId, goalId } = req.params;
-    const { status } = req.body;
 
+    if (!req.body) {
+      res.status(400).json({ error: "Request body is required." });
+      return;
+    }
+
+    const { status } = req.body;
     const setStatusSchema = z.object({
-      status: z.boolean(),
+      status: z.boolean().nonoptional("Status is required"),
       roadmapId: z.string().min(1, "Roadmap ID is required"),
       subgoalId: z.string().min(1, "Subgoal ID is required"),
     });
