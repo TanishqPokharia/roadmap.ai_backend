@@ -1,16 +1,24 @@
 import mongoose from "mongoose";
-import PublicRoadmapSubgoal from "./public.roadmap.subgoal";
+import { roadmapSubgoalSchema } from "./roadmap.subgoal";
+import IRoadmapGoal from "../models/roadmap.goal";
 
-const roadmapGoalSchema = new mongoose.Schema({
+type RoadmapGoalDocument = mongoose.Document & IRoadmapGoal;
+
+export const roadmapGoalSchema = new mongoose.Schema<RoadmapGoalDocument>({
   title: {
     type: String,
     required: true,
+    minlength: 10,
+    maxlength: 100,
   },
   subgoals: {
-    type: [PublicRoadmapSubgoal],
+    type: [roadmapSubgoalSchema],
     required: true,
   },
 });
 
-const RoadmapGoal = mongoose.model("RoadmapGoal", roadmapGoalSchema);
+const RoadmapGoal = mongoose.model<RoadmapGoalDocument>(
+  "RoadmapGoal",
+  roadmapGoalSchema
+);
 export default RoadmapGoal;

@@ -3,13 +3,16 @@ import mongoose, {
   ValidatorProps,
 } from "mongoose";
 import hashPassword from "../utils/hash.password";
+import IUser from "../models/user";
 
-const userSchema = new mongoose.Schema({
+export type UserDocument = mongoose.Document & IUser;
+
+const userSchema = new mongoose.Schema<UserDocument>({
   username: {
     type: String,
     required: true,
     unique: true,
-    minlength: 10,
+    minlength: 8,
     maxlength: 20,
     index: true,
   },
@@ -29,6 +32,7 @@ const userSchema = new mongoose.Schema({
   password: {
     type: String,
     required: true,
+    select: false,
     minlength: 8,
     maxlength: 20,
   },
@@ -42,5 +46,6 @@ userSchema.pre(
   }
 );
 
-const User = mongoose.model("User", userSchema);
+const User = mongoose.model<UserDocument>("User", userSchema);
+
 export default User;
