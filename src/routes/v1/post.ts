@@ -6,11 +6,10 @@ const router = Router();
 
 const controller: IPostController = container.resolve("PostController");
 
-router.use(checkToken);
 router.get("/", controller.getPopularPosts);
 router.get("/time", controller.getPostsByTime);
 router.get("/search", controller.getPostsByTitle);
-router.get("/like", controller.togglePostLike);
+router.patch("/like/:postId", controller.togglePostLike);
 router.post("/", controller.uploadPost);
 
 export default router;

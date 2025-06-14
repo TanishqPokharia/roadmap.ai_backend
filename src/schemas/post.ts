@@ -5,7 +5,6 @@ import IPost from "../models/post";
 type PostDocument = mongoose.Document & IPost;
 
 const postSchema = new mongoose.Schema<PostDocument>({
-  title: { type: String, required: true, index: true },
   roadmap: {
     type: roadmapSchema,
     required: true,
@@ -14,7 +13,14 @@ const postSchema = new mongoose.Schema<PostDocument>({
     type: Number,
     default: 0,
   },
-  author: { type: mongoose.Schema.ObjectId, required: true, ref: "User" },
+  author: {
+    type: new mongoose.Schema({
+      username: { type: String, required: true },
+      email: { type: String, required: true },
+    }),
+    required: true,
+    ref: "User",
+  },
   createdAt: { type: Date, default: Date.now },
 });
 

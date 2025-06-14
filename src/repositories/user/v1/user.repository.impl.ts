@@ -5,9 +5,9 @@ import IUserRepository from "../user.repository.interface";
 import createAccessToken from "../../../utils/create.access.token";
 import createRefreshToken from "../../../utils/create.refresh.toke";
 import { injectable } from "tsyringe";
-import hashPassword from "../../../utils/hash.password";
 import logger from "../../../utils/logger";
 import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 
 @injectable()
 class V1UserRepository implements IUserRepository {
@@ -98,6 +98,30 @@ class V1UserRepository implements IUserRepository {
       return {
         data: null,
         error: error as Error,
+      };
+    }
+  }
+
+  async refresh(refreshToken: string): Promise<DataOrError<AuthResponse>> {
+    try {
+      const secret = process.env.REFRESH_TOKEN_SECRET as string;
+      const decoded = jwt.verify(refreshToken, secret) as { userId: string };
+      const accessToken = createAccessToken(decoded.userId);
+      const newRefreshToken = createRefreshToken(decoded.userId);
+      return {
+        data: {
+          accessToken,
+          refreshToken: newRefreshToken,
+        },
+        error: null,
+      };
+    } catch (error) {
+      logger.error(error, "Error refreshing token");
+      return {
+        data: null,
+        error: new Error(
+          `Failed to refresh token: ${(error as Error).message}`
+        ),
       };
     }
   }

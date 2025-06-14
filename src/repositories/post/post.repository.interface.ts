@@ -9,11 +9,7 @@ export default interface IPostRepository {
     limit: number,
     skip: number
   ): Promise<DataOrError<IPost[]>>;
-  uploadPost(
-    userId: string,
-    title: string,
-    roadmap: IRoadmap
-  ): Promise<DataOrError<string>>;
+  uploadPost(userId: string, roadmap: IRoadmap): Promise<DataOrError<string>>;
   getPostsByTime(
     time: PostTime,
     limit: number,

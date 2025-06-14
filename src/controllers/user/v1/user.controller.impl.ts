@@ -72,6 +72,32 @@ class V1UserController implements IUserController {
 
     res.status(200).json({ accessToken, refreshToken });
   };
+
+  refresh = async (req: Request, res: Response): Promise<void> => {
+    const { refreshToken } = req.body;
+    const refreshSchema = z.object({
+      refreshToken: z.string().min(1, "Refresh token is required"),
+    });
+    const validation = refreshSchema.safeParse({ refreshToken });
+
+    if (!validation.success) {
+      res.status(400).json({ error: z.prettifyError(validation.error) });
+      return;
+    }
+
+    const validated = validation.data;
+
+    const { data: tokens, error } = await this.repo.refresh(
+      validated.refreshToken
+    );
+    if (error) {
+      res.status(500).json({ error: error.message });
+      return;
+    }
+    const { accessToken, refreshToken: newRefreshToken } = tokens!;
+
+    res.status(200).json({ accessToken, refreshToken: newRefreshToken });
+  };
 }
 
 export default V1UserController;

@@ -7,5 +7,6 @@ const router = Router();
 const controller: IUserController = container.resolve("UserController");
 router.post("/signup", controller.signUp);
 router.post("/login", controller.login);
+router.post("/refresh", controller.refresh);
 
 export default router;

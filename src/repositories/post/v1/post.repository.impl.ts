@@ -6,6 +6,7 @@ import Post from "../../../schemas/post";
 import DataOrError from "../../../utils/either";
 import logger from "../../../utils/logger";
 import IPostRepository, { PostTime } from "../post.repository.interface";
+import User from "../../../schemas/user";
 
 @injectable()
 class V1PostRepository implements IPostRepository {
@@ -42,8 +43,9 @@ class V1PostRepository implements IPostRepository {
   ): Promise<DataOrError<IPost[]>> {
     try {
       const posts = await Post.find({
-        title: { $regex: topic, $options: "i" },
+        "roadmap.title": { $regex: topic, $options: "i" },
       })
+        .sort({ likes: -1 })
         .limit(limit)
         .skip(skip)
         .exec();
@@ -61,14 +63,28 @@ class V1PostRepository implements IPostRepository {
   }
   async uploadPost(
     userId: string,
-    title: string,
     roadmap: IRoadmap
   ): Promise<DataOrError<string>> {
     try {
+      const userInfo = await User.findById(userId, "username email ", {
+        limit: 1,
+      });
+
+      if (!userInfo) {
+        return {
+          data: null,
+          error: new Error("User not found"),
+        };
+      }
+
+      const { email, username } = userInfo;
       const post = new Post({
         userId,
-        title,
         roadmap,
+        author: {
+          username,
+          email,
+        },
       });
 
       const savedPost = await post.save();
@@ -133,7 +149,7 @@ class V1PostRepository implements IPostRepository {
       const post = await Post.findOneAndUpdate(
         { _id: postId },
         {
-          likes: isAlreadyLiked ? -1 : 1,
+          $inc: { likes: isAlreadyLiked ? -1 : 1 },
         }
       ).exec();
       if (!post) {
