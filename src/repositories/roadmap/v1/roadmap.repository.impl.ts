@@ -6,7 +6,7 @@ import {
   Type,
 } from "@google/genai";
 import { injectable } from "tsyringe";
-import logger from "../../../utils/logger";
+import { logger } from "../../../utils/logger";
 import IRoadmapRepository from "../roadmap.repository.interface";
 import IRoadmap from "../../../models/roadmap";
 import Roadmap from "../../../schemas/roadmap";
@@ -121,7 +121,7 @@ class V1RoadmapRepository implements IRoadmapRepository {
       const contentPrompt = process.env.CONTENT_PROMPT as string;
       const systemInstruction = process.env.SYSTEM_INSTRUCTION as string;
       const response = await ai.models.generateContent({
-        model: "gemini-1.5-flash",
+        model: "gemini-2.0-flash",
         contents: `
         Generate a detailed roadmap for learning: "${topic}".
     

@@ -7,15 +7,14 @@ import { registerDependencies } from "./utils/register.dependencies";
 registerDependencies();
 
 import express from "express";
-// import morgan from "morgan";
-import pino from "pino-http";
-import logger from "./utils/logger";
 import v1Router from "./routes/v1/index";
 import mongoose from "mongoose";
+import { httpLogger, logger } from "./utils/logger";
 const app = express();
-app.use(pino());
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(httpLogger);
 
 app.use("/api/v1", v1Router);
 
@@ -25,7 +24,8 @@ mongoose
     logger.info("Connected to MongoDB successfully");
   })
   .catch((error) => {
-    logger.fatal("Failed to connect to MongoDB:", error);
+    const message = (error as Error).message;
+    logger.fatal("Failed to connect to MongoDB:", message);
   });
 
 app.listen(3000, () => {

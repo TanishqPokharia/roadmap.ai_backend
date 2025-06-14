@@ -4,7 +4,7 @@ import IRoadmap from "../../../models/roadmap";
 import Likes from "../../../schemas/likes";
 import Post from "../../../schemas/post";
 import DataOrError from "../../../utils/either";
-import logger from "../../../utils/logger";
+import { logger } from "../../../utils/logger";
 import IPostRepository, { PostTime } from "../post.repository.interface";
 import User from "../../../schemas/user";
 

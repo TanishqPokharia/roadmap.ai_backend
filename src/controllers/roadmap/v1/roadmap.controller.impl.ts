@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { inject, injectable } from "tsyringe";
 
-import logger from "../../../utils/logger";
+import { logger } from "../../../utils/logger";
 import IRoadmapController from "../roadmap.controller.interface";
 import IRoadmapRepository from "../../../repositories/roadmap/roadmap.repository.interface";
 import { z } from "zod/v4";

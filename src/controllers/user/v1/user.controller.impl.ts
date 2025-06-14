@@ -74,6 +74,11 @@ class V1UserController implements IUserController {
   };
 
   refresh = async (req: Request, res: Response): Promise<void> => {
+    if (!req.body) {
+      res.status(400).json({ error: "Request body is required" });
+      return;
+    }
+
     const { refreshToken } = req.body;
     const refreshSchema = z.object({
       refreshToken: z.string().min(1, "Refresh token is required"),

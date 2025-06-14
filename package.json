@@ -24,6 +24,7 @@
     "morgan": "^1.10.0",
     "pino": "^9.7.0",
     "pino-http": "^10.4.0",
+    "punycode": "^2.3.1",
     "reflect-metadata": "^0.2.2",
     "roadmap.ai": "file:",
     "tsyringe": "^4.10.0",

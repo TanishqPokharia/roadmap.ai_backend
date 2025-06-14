@@ -5,7 +5,7 @@ import IUserRepository from "../user.repository.interface";
 import createAccessToken from "../../../utils/create.access.token";
 import createRefreshToken from "../../../utils/create.refresh.toke";
 import { injectable } from "tsyringe";
-import logger from "../../../utils/logger";
+import { logger } from "../../../utils/logger";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
