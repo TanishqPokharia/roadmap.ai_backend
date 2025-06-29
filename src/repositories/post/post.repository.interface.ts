@@ -16,6 +16,11 @@ export default interface IPostRepository {
     skip: number
   ): Promise<DataOrError<IPost[]>>;
   togglePostLike(userId: string, postId: string): Promise<DataOrError<string>>;
+  getPostsByAuthor(
+    authorId: string,
+    limit: number,
+    skip: number
+  ): Promise<DataOrError<IPost[]>>;
 }
 
 export type PostTime = "day" | "week" | "month" | "year";

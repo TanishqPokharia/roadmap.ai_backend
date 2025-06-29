@@ -24,4 +24,11 @@ const roadmapGoalSchema = new mongoose.Schema<RoadmapGoalDocument>({
   },
 });
 
+roadmapGoalSchema.set("toJSON", {
+  virtuals: true,
+  transform(doc, ret, options) {
+    delete ret._id;
+    return ret;
+  },
+});
 export default roadmapGoalSchema;

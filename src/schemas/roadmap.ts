@@ -21,6 +21,12 @@ export const roadmapSchema = new mongoose.Schema<RoadmapDocument>({
     required: true,
   },
 });
-
+roadmapSchema.set("toJSON", {
+  virtuals: true,
+  transform(doc, ret, options) {
+    delete ret._id;
+    return ret;
+  },
+});
 const Roadmap = mongoose.model<RoadmapDocument>("Roadmap", roadmapSchema);
 export default Roadmap;

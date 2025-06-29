@@ -2,7 +2,8 @@ import { Request, Response } from "express";
 import IUserController from "../user.controller.interface";
 import IUserRepository from "../../../repositories/user/user.repository.interface";
 import { inject, injectable } from "tsyringe";
-import { z } from "zod/v4";
+import { file, z } from "zod/v4";
+import { logger } from "../../../utils/logger";
 
 @injectable()
 class V1UserController implements IUserController {
@@ -102,6 +103,35 @@ class V1UserController implements IUserController {
     const { accessToken, refreshToken: newRefreshToken } = tokens!;
 
     res.status(200).json({ accessToken, refreshToken: newRefreshToken });
+  };
+
+  uploadAvatar = async (req: Request, res: Response): Promise<void> => {
+    const userId = req.token;
+    if (!req.file) {
+      res.status(400).json({ error: "Avatar file is required" });
+      return;
+    }
+
+    logger.info("File:" + req.file.originalname);
+
+    const avatar = req.file.buffer;
+
+    if (!avatar) {
+      res.status(400).json({ error: "Could not process avatar file path" });
+      return;
+    }
+
+    logger.info("AVATAR : " + avatar);
+
+    const { data, error } = await this.repo.uploadAvatar(
+      userId.toString(),
+      avatar
+    );
+    if (error) {
+      res.status(500).json({ error: error.message });
+      return;
+    }
+    res.status(200).json({ avatar: data });
   };
 }
 

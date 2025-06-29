@@ -172,6 +172,42 @@ class V1PostController implements IPostController {
     }
     res.status(200).json({ message: data });
   };
+
+  getPostsByAuthor = async (req: Request, res: Response): Promise<void> => {
+    const authorId = req.params.authorId;
+    const { limit, skip } = req.query;
+
+    // validate params
+    const authorPostsSchema = z.object({
+      authorId: z.string().min(1, "Author ID is required"),
+      limit: z.preprocess((val) => Number(val), z.number().int().nonnegative()),
+      skip: z.preprocess((val) => Number(val), z.number().int().nonnegative()),
+    });
+
+    const validation = authorPostsSchema.safeParse({
+      authorId,
+      limit,
+      skip,
+    });
+
+    if (!validation.success) {
+      res.status(400).json({ error: z.prettifyError(validation.error) });
+      return;
+    }
+
+    const validated = validation.data;
+    const { data: posts, error } = await this.repo.getPostsByAuthor(
+      validated.authorId,
+      validated.limit,
+      validated.skip
+    );
+
+    if (error) {
+      res.status(500).json({ error: error.message });
+      return;
+    }
+    res.status(200).json({ posts });
+  };
 }
 
 export default V1PostController;

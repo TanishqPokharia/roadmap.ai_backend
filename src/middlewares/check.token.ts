@@ -1,11 +1,16 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import { logger } from "../utils/logger";
-const checkToken = (req: Request, res: Response, next: NextFunction) => {
+const checkToken = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   try {
     const auth = req.headers.authorization?.split(" ");
     if (!auth || auth.at(0) !== "Bearer" || !auth.at(1)) {
-      return res.status(401).json({ error: "Unauthorized" });
+      res.status(401).json({ error: "Unauthorized" });
+      return;
     }
 
     const tokenString = auth[1];
@@ -15,24 +20,27 @@ const checkToken = (req: Request, res: Response, next: NextFunction) => {
       { algorithms: ["HS256"] }
     );
     if (typeof token === "string") {
-      return res
-        .status(401)
-        .json({ error: "Unauthorized: Invalid token format" });
+      res.status(401).json({ error: "Unauthorized: Invalid token format" });
+      return;
     }
 
+    // pino provides a token property in the request object
     req.token = token.id;
 
     next();
   } catch (error) {
     logger.error(error, "Error verifying token:");
     if (error instanceof jwt.JsonWebTokenError) {
-      return res.status(401).json({ error: "Unauthorized: Invalid token" });
+      res.status(401).json({ error: "Unauthorized: Invalid token" });
+      return;
     }
     if (error instanceof jwt.TokenExpiredError) {
-      return res.status(401).json({ error: "Unauthorized: Token expired" });
+      res.status(401).json({ error: "Unauthorized: Token expired" });
+      return;
     }
 
-    return res.status(500).json({ error: "Internal Server Error" });
+    res.status(500).json({ error: "Internal Server Error" });
+    return;
   }
 };
 

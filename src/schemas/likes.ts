@@ -7,6 +7,7 @@ const likesSchema = new mongoose.Schema({
 
 likesSchema.index({ userId: 1, postId: 1 }, { unique: true });
 likesSchema.set("toJSON", {
+  virtuals: true,
   transform: function (doc, ret) {
     ret.id = ret._id;
     delete ret._id;

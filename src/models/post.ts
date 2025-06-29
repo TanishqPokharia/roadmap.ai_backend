@@ -5,11 +5,12 @@ interface IPost {
   _id: Types.ObjectId;
   roadmap: IRoadmap;
   likes: number;
-  author: IAuthor;
+  authorId: Types.ObjectId;
   createdAt: Date;
 }
 
 interface IAuthor {
+  authorId: Types.ObjectId;
   username: string;
   email: string;
 }

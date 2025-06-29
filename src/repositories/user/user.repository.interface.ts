@@ -9,4 +9,5 @@ export default interface IUserRepository {
   ): Promise<DataOrError<AuthResponse>>;
   login(email: string, password: string): Promise<DataOrError<AuthResponse>>;
   refresh(refreshToken: string): Promise<DataOrError<AuthResponse>>;
+  uploadAvatar(userId: string, avatar: Buffer): Promise<DataOrError<string>>;
 }

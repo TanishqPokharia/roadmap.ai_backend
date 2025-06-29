@@ -18,6 +18,7 @@ app.use(httpLogger);
 
 app.use("/api/v1", v1Router);
 
+// Connect to MongoDB
 mongoose
   .connect(`${process.env.DB_URL}`)
   .then((result) => {
@@ -30,4 +31,10 @@ mongoose
 
 app.listen(3000, () => {
   logger.info("Server is running on port 3000");
+});
+
+// Configure Cloudinary
+import { v2 as cloudinary } from "cloudinary";
+cloudinary.config({
+  secure: true,
 });

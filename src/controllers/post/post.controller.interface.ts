@@ -6,4 +6,5 @@ export default interface IPostController {
   uploadPost(req: Request, res: Response): Promise<void>;
   getPostsByTime(req: Request, res: Response): Promise<void>;
   togglePostLike(req: Request, res: Response): Promise<void>;
+  getPostsByAuthor(req: Request, res: Response): Promise<void>;
 }

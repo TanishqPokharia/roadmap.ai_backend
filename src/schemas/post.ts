@@ -13,15 +13,24 @@ const postSchema = new mongoose.Schema<PostDocument>({
     type: Number,
     default: 0,
   },
-  author: {
-    type: new mongoose.Schema({
-      username: { type: String, required: true },
-      email: { type: String, required: true },
-    }),
+  authorId: {
+    type: mongoose.Schema.Types.ObjectId,
+    index: true,
     required: true,
     ref: "User",
   },
   createdAt: { type: Date, default: Date.now },
+});
+
+postSchema.virtual("author", {
+  ref: "User",
+  localField: "authorId",
+  foreignField: "_id",
+  justOne: true,
+});
+
+postSchema.set("toJSON", {
+  virtuals: true,
 });
 
 const Post = mongoose.model<PostDocument>("Post", postSchema);

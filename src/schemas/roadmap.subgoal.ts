@@ -7,6 +7,19 @@ type RoadmapSubgoalStatusDocument = mongoose.Document & {
   completedAt: Date | null;
 };
 
+const roadmapSubgoalStatusSchema =
+  new mongoose.Schema<RoadmapSubgoalStatusDocument>({
+    completed: {
+      type: Boolean,
+      default: false,
+      required: true,
+    },
+    completedAt: {
+      type: Date,
+      default: null,
+    },
+  });
+
 const roadmapSubgoalSchema = new mongoose.Schema<RoadmapSubgoalDocument>({
   title: {
     type: String,
@@ -31,19 +44,25 @@ const roadmapSubgoalSchema = new mongoose.Schema<RoadmapSubgoalDocument>({
     required: true,
   },
   status: {
-    type: new mongoose.Schema<RoadmapSubgoalStatusDocument>({
-      completed: {
-        type: Boolean,
-        default: false,
-        required: true,
-      },
-      completedAt: {
-        type: Date,
-        default: null,
-      },
-    }),
+    type: roadmapSubgoalStatusSchema,
     default: { completed: false, completedAt: null },
     required: true,
+  },
+});
+
+roadmapSubgoalStatusSchema.set("toJSON", {
+  virtuals: true,
+  transform(doc, ret, options) {
+    delete ret._id;
+    return ret;
+  },
+});
+
+roadmapSubgoalSchema.set("toJSON", {
+  virtuals: true,
+  transform(doc, ret, options) {
+    delete ret._id;
+    return ret;
   },
 });
 

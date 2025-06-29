@@ -36,6 +36,24 @@ const userSchema = new mongoose.Schema<UserDocument>({
     minlength: 8,
     maxlength: 20,
   },
+  createdAt: {
+    type: Date,
+    default: Date.now,
+    required: true,
+  },
+  avatar: {
+    type: String,
+    default: null,
+  },
+});
+
+userSchema.set("toJSON", {
+  virtuals: true,
+  transform(doc, ret, options) {
+    delete ret._id;
+    delete ret.password;
+    return ret;
+  },
 });
 
 userSchema.pre(

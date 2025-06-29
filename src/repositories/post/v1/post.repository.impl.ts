@@ -17,7 +17,7 @@ class V1PostRepository implements IPostRepository {
     try {
       const posts = await Post.find({
         createdAt: {
-          $gte: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7),
+          $gte: new Date(Date.now() - 1000 * 60 * 60 * 24 * 14),
         },
       })
         .limit(limit)
@@ -82,6 +82,7 @@ class V1PostRepository implements IPostRepository {
         userId,
         roadmap,
         author: {
+          authorId: userId,
           username,
           email,
         },
@@ -168,6 +169,34 @@ class V1PostRepository implements IPostRepository {
         data: null,
         error: new Error(
           `Failed to toggle post like: ${(error as Error).message}`
+        ),
+      };
+    }
+  }
+
+  async getPostsByAuthor(
+    authorId: string,
+    limit: number,
+    skip: number
+  ): Promise<DataOrError<IPost[]>> {
+    try {
+      const posts = await Post.find()
+        .where({
+          authorId,
+        })
+        .limit(limit)
+        .skip(skip)
+        .sort({ createdAt: -1 })
+        .populate("author", "username email avatar")
+        .exec();
+
+      return { data: posts, error: null };
+    } catch (error) {
+      logger.error(error, "Error getting posts by author");
+      return {
+        data: null,
+        error: new Error(
+          `Failed to get posts by author: ${(error as Error).message}`
         ),
       };
     }
