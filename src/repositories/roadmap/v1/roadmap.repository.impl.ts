@@ -2,43 +2,75 @@ import {
   GoogleGenAI,
   HarmBlockThreshold,
   HarmCategory,
-  Schema,
-  Type,
 } from "@google/genai";
 import { injectable } from "tsyringe";
 import { logger } from "../../../utils/logger";
 import IRoadmapRepository from "../roadmap.repository.interface";
 import IRoadmap from "../../../models/roadmap";
 import Roadmap from "../../../schemas/roadmap";
-import DataOrError from "../../../utils/either";
 import responseSchema from "../../../utils/generated.roadmap.schema";
+import { NotFoundError, AccessDeniedError, DatabaseError, ExternalServiceError } from "../../../utils/errors";
+import DataOrError from "../../../utils/either";
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_KEY });
 
 @injectable()
 class V1RoadmapRepository implements IRoadmapRepository {
-  async getPrivateRoadmaps(
+  async getPrivateRoadmap(userId: string, roadmapId: string): Promise<DataOrError<IRoadmap>> {
+    try {
+      const roadmap = await Roadmap.findById(roadmapId);
+
+      if (!roadmap) {
+        return {
+          data: null,
+          error: new NotFoundError("Roadmap does not exist")
+        };
+      }
+
+      if (roadmap.userId.toString() !== userId) {
+        return {
+          data: null,
+          error: new AccessDeniedError("Access Denied")
+        };
+      }
+
+      return {
+        data: roadmap,
+        error: null
+      };
+    } catch (error) {
+      logger.error(error, "Error getting private roadmap");
+      return {
+        data: null,
+        error: new DatabaseError(`Failed to get roadmap: ${(error as Error).message}`)
+      };
+    }
+  }
+  async getPrivateRoadmapsMetaData(
     userId: string,
     limit: number,
     skip: number
   ): Promise<DataOrError<IRoadmap[]>> {
     try {
       const roadmaps = await Roadmap.find({ userId })
+        .select({
+          goals: 0 // remove the goals, just send meta data
+        })
         .limit(limit)
         .sort({ createdAt: -1 })
         .skip(skip)
         .exec();
       return {
         data: roadmaps,
-        error: null,
+        error: null
       };
     } catch (error) {
       logger.error(error, "Error getting private roadmaps");
       return {
         data: null,
-        error: new Error(
+        error: new DatabaseError(
           `Failed to get private roadmaps: ${(error as Error).message}`
-        ),
+        )
       };
     }
   }
@@ -47,19 +79,19 @@ class V1RoadmapRepository implements IRoadmapRepository {
     roadmap: IRoadmap
   ): Promise<DataOrError<string>> {
     try {
-      const savedRoamap = await Roadmap.create({
+      const savedRoadmap = await Roadmap.create({
         userId: userId,
         title: roadmap.title,
         goals: roadmap.goals,
       });
 
-      await savedRoamap.save();
-      return { data: "Roadmap saved", error: null };
+      await savedRoadmap.save();
+      return { data: "Roadmap saved successfully", error: null };
     } catch (error) {
       logger.error(error, "Error saving roadmap:");
       return {
         data: null,
-        error: new Error(`Failed to save roadmap: ${(error as Error).message}`),
+        error: new DatabaseError(`Failed to save roadmap: ${(error as Error).message}`)
       };
     }
   }
@@ -67,16 +99,16 @@ class V1RoadmapRepository implements IRoadmapRepository {
     try {
       const result = await Roadmap.deleteOne({ _id: roadmapId }).exec();
       if (result.deletedCount === 0) {
-        return { data: null, error: new Error("Roadmap not found") };
+        return { data: null, error: new NotFoundError("Roadmap not found") };
       }
-      return { data: "Roadmap deleted", error: null };
+      return { data: "Roadmap deleted successfully", error: null };
     } catch (error) {
       logger.error(error, "Error deleting roadmap:");
       return {
         data: null,
-        error: new Error(
+        error: new DatabaseError(
           `Failed to delete roadmap: ${(error as Error).message}`
-        ),
+        )
       };
     }
   }
@@ -90,29 +122,29 @@ class V1RoadmapRepository implements IRoadmapRepository {
     try {
       const roadmap = await Roadmap.findById(roadmapId).exec();
       if (!roadmap) {
-        return { data: null, error: new Error("Roadmap not found") };
+        return { data: null, error: new NotFoundError("Roadmap not found") };
       }
 
       const goal = roadmap.goals.find((g) => g._id.equals(goalId));
       if (!goal) {
-        return { data: null, error: new Error("Goal not found") };
+        return { data: null, error: new NotFoundError("Goal not found") };
       }
       const subgoal = goal.subgoals.find((sg) => sg._id.equals(subgoalId));
       if (!subgoal) {
-        return { data: null, error: new Error("Subgoal not found") };
+        return { data: null, error: new NotFoundError("Subgoal not found") };
       }
       subgoal.status.completed = status;
       subgoal.status.completedAt = status ? new Date() : null;
       roadmap.markModified("goals");
       await roadmap.save();
-      return { data: "Subgoal status updated", error: null };
+      return { data: "Subgoal status updated successfully", error: null };
     } catch (error) {
       logger.error(error, "Error setting roadmap subgoal status:");
       return {
         data: null,
-        error: new Error(
+        error: new DatabaseError(
           `Failed to set subgoal status: ${(error as Error).message}`
-        ),
+        )
       };
     }
   }
@@ -163,7 +195,7 @@ class V1RoadmapRepository implements IRoadmapRepository {
         logger.error("Empty response from Gemini API");
         return {
           data: null,
-          error: new Error("Empty response from AI service"),
+          error: new ExternalServiceError("Empty response from AI service")
         };
       }
 
@@ -174,7 +206,7 @@ class V1RoadmapRepository implements IRoadmapRepository {
       logger.error(error, "Error processing API response:");
       return {
         data: null,
-        error: new Error(`Failed to process API response:`),
+        error: new ExternalServiceError(`Failed to process API response: ${(error as Error).message}`)
       };
     }
   }

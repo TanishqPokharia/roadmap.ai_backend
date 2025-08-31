@@ -1,13 +1,14 @@
 import { inject, injectable } from "tsyringe";
 import IPostController from "../post.controller.interface";
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import IPostRepository from "../../../repositories/post/post.repository.interface";
 import { z } from "zod/v4";
+import { ValidationError } from "../../../utils/errors";
 
 @injectable()
 class V1PostController implements IPostController {
-  constructor(@inject("PostRepository") private repo: IPostRepository) {}
-  getPopularPosts = async (req: Request, res: Response): Promise<void> => {
+  constructor(@inject("PostRepository") private repo: IPostRepository) { }
+  getPopularPosts = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const { limit, skip } = req.query;
     const popularPostsSchema = z.object({
       limit: z.preprocess((val) => Number(val), z.number().int().nonnegative()),
@@ -18,8 +19,7 @@ class V1PostController implements IPostController {
       skip,
     });
     if (!validation.success) {
-      res.status(400).json({ error: z.prettifyError(validation.error) });
-      return;
+      throw new ValidationError(z.prettifyError(validation.error));
     }
     const validated = validation.data;
     const { data: posts, error } = await this.repo.getPopularPosts(
@@ -27,12 +27,12 @@ class V1PostController implements IPostController {
       validated.skip
     );
     if (error) {
-      res.status(500).json({ error: error.message });
+      next(error);
       return;
     }
     res.status(200).json({ posts });
   };
-  getPostsByTitle = async (req: Request, res: Response): Promise<void> => {
+  getPostsByTitle = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const { title, limit, skip } = req.query;
     // validate params
     const postTitleSchema = z.object({
@@ -48,8 +48,7 @@ class V1PostController implements IPostController {
     });
 
     if (!validation.success) {
-      res.status(400).json({ error: z.prettifyError(validation.error) });
-      return;
+      throw new ValidationError(z.prettifyError(validation.error));
     }
 
     const validated = validation.data;
@@ -60,16 +59,15 @@ class V1PostController implements IPostController {
     );
 
     if (error) {
-      res.status(500).json({ error: error.message });
+      next(error);
       return;
     }
     res.status(200).json({ posts });
   };
-  uploadPost = async (req: Request, res: Response): Promise<void> => {
+  uploadPost = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const userId = req.token;
     if (!req.body) {
-      res.status(400).json({ error: "Request body is required" });
-      return;
+      throw new ValidationError("Request body is required");
     }
     const { roadmap } = req.body;
 
@@ -89,8 +87,7 @@ class V1PostController implements IPostController {
     });
 
     if (!validation.success) {
-      res.status(400).json({ error: z.prettifyError(validation.error) });
-      return;
+      throw new ValidationError(z.prettifyError(validation.error));
     }
 
     const validated = validation.data;
@@ -100,16 +97,12 @@ class V1PostController implements IPostController {
       roadmap
     );
     if (error) {
-      if (error.message.includes("not found")) {
-        res.status(404).json({ error: error.message });
-        return;
-      }
-      res.status(500).json({ error: error.message });
+      next(error);
       return;
     }
     res.status(201).json({ post: data });
   };
-  getPostsByTime = async (req: Request, res: Response): Promise<void> => {
+  getPostsByTime = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const { time, limit, skip } = req.query;
 
     // validate params
@@ -126,8 +119,7 @@ class V1PostController implements IPostController {
     });
 
     if (!validation.success) {
-      res.status(400).json({ error: z.prettifyError(validation.error) });
-      return;
+      throw new ValidationError(z.prettifyError(validation.error));
     }
 
     const validated = validation.data;
@@ -138,12 +130,12 @@ class V1PostController implements IPostController {
     );
 
     if (error) {
-      res.status(500).json({ error: error.message });
+      next(error);
       return;
     }
     res.status(200).json({ posts });
   };
-  togglePostLike = async (req: Request, res: Response): Promise<void> => {
+  togglePostLike = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const userId = req.token;
     const postId = req.params.postId;
 
@@ -156,8 +148,7 @@ class V1PostController implements IPostController {
     const validation = toggleLikeSchema.safeParse({ userId, postId });
 
     if (!validation.success) {
-      res.status(400).json({ error: z.prettifyError(validation.error) });
-      return;
+      throw new ValidationError(z.prettifyError(validation.error));
     }
 
     const validated = validation.data;
@@ -167,13 +158,13 @@ class V1PostController implements IPostController {
       validated.postId
     );
     if (error) {
-      res.status(500).json({ error: error.message });
+      next(error);
       return;
     }
     res.status(200).json({ message: data });
   };
 
-  getPostsByAuthor = async (req: Request, res: Response): Promise<void> => {
+  getPostsByAuthor = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const authorId = req.params.authorId;
     const { limit, skip } = req.query;
 
@@ -191,8 +182,7 @@ class V1PostController implements IPostController {
     });
 
     if (!validation.success) {
-      res.status(400).json({ error: z.prettifyError(validation.error) });
-      return;
+      throw new ValidationError(z.prettifyError(validation.error));
     }
 
     const validated = validation.data;
@@ -203,11 +193,32 @@ class V1PostController implements IPostController {
     );
 
     if (error) {
-      res.status(500).json({ error: error.message });
+      next(error);
       return;
     }
     res.status(200).json({ posts });
   };
+
+
+
+  getPostRoadmap = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    const postId = req.params.postId;
+    const userId = req.token as string;
+    if (!postId) {
+      throw new ValidationError("post id is required");
+    }
+    const { data: roadmap, error } = await this.repo.getPostRoadmap(postId);
+    if (error) {
+      next(error);
+      return;
+    }
+
+    // if getting roadmap is successfull, set a job to toggle view status
+    setImmediate(() => {
+      this.repo.toggleView(userId, postId);
+    });
+    res.status(200).json({ roadmap });
+  }
 }
 
 export default V1PostController;

@@ -11,6 +11,7 @@ router.get("/", controller.getPopularPosts);
 router.get("/time", controller.getPostsByTime);
 router.get("/search", controller.getPostsByTitle);
 router.get("/:authorId", controller.getPostsByAuthor);
+router.get("/roadmap/:postId", controller.getPostRoadmap);
 router.patch("/like/:postId", controller.togglePostLike);
 router.post("/", controller.uploadPost);
 

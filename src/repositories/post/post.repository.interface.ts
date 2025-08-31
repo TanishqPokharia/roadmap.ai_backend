@@ -21,6 +21,15 @@ export default interface IPostRepository {
     limit: number,
     skip: number
   ): Promise<DataOrError<IPost[]>>;
+  /**
+   * Fetch the roadmap of the selected post
+   */
+  getPostRoadmap(postId: string): Promise<DataOrError<IRoadmap>>
+  /**
+   * Increases the view count of post if previously not viewed by a user
+   */
+  toggleView(userId: string, postId: string): Promise<DataOrError<void>>;
+
 }
 
 export type PostTime = "day" | "week" | "month" | "year";

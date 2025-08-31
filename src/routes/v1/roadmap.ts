@@ -7,7 +7,8 @@ const router = Router();
 
 const controller: IRoadmapController = container.resolve("RoadmapController");
 
-router.get("/", controller.getPrivateRoadmaps);
+router.get("/", controller.getPrivateRoadmapsMetaData);
+router.get("/data/:roadmapId", controller.getPrivateRoadmap);
 router.get("/generate", controller.generateRoadmap);
 router.post("/save", controller.saveRoadmap);
 router.delete("/delete/:roadmapId", controller.deleteRoadmap);

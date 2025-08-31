@@ -13,6 +13,10 @@ const postSchema = new mongoose.Schema<PostDocument>({
     type: Number,
     default: 0,
   },
+  views: {
+    type: Number,
+    default: 0
+  },
   authorId: {
     type: mongoose.Schema.Types.ObjectId,
     index: true,
@@ -31,6 +35,12 @@ postSchema.virtual("author", {
 
 postSchema.set("toJSON", {
   virtuals: true,
+  transform: (doc, ret) => {
+    ret.id = ret._id;
+    delete ret._id;
+    delete ret.authorId;
+    return ret;
+  }
 });
 
 const Post = mongoose.model<PostDocument>("Post", postSchema);

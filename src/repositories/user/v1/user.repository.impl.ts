@@ -13,6 +13,7 @@ import {
   UploadApiOptions,
   UploadApiResponse,
 } from "cloudinary";
+import { NotFoundError, ValidationError, DatabaseError, ExternalServiceError } from "../../../utils/errors";
 @injectable()
 class V1UserRepository implements IUserRepository {
   async signUp(
@@ -31,13 +32,13 @@ class V1UserRepository implements IUserRepository {
       if (existingUser) {
         if (existingUser.email === email) {
           return {
-            error: new Error("Email already exists"),
+            error: new ValidationError("Email already exists"),
             data: null,
           };
         }
         if (existingUser.username === username) {
           return {
-            error: new Error("Username already exists"),
+            error: new ValidationError("Username already exists"),
             data: null,
           };
         }
@@ -62,8 +63,9 @@ class V1UserRepository implements IUserRepository {
         },
       };
     } catch (error) {
+      logger.error(error, "Error during signup");
       return {
-        error: error as Error,
+        error: new DatabaseError(`Failed to create user: ${(error as Error).message}`),
         data: null,
       };
     }
@@ -77,7 +79,7 @@ class V1UserRepository implements IUserRepository {
       if (!user) {
         return {
           data: null,
-          error: new Error("User not found"),
+          error: new NotFoundError("User not found"),
         };
       }
 
@@ -86,7 +88,7 @@ class V1UserRepository implements IUserRepository {
       if (!isCorrectPassword) {
         return {
           data: null,
-          error: new Error("Incorrect password"),
+          error: new ValidationError("Incorrect password"),
         };
       }
       const accessToken = createAccessToken(user._id.toString());
@@ -99,9 +101,10 @@ class V1UserRepository implements IUserRepository {
         error: null,
       };
     } catch (error) {
+      logger.error(error, "Error during login");
       return {
         data: null,
-        error: error as Error,
+        error: new DatabaseError(`Login failed: ${(error as Error).message}`),
       };
     }
   }
@@ -123,8 +126,8 @@ class V1UserRepository implements IUserRepository {
       logger.error(error, "Error refreshing token");
       return {
         data: null,
-        error: new Error(
-          `Failed to refresh token: ${(error as Error).message}`
+        error: new ValidationError(
+          `Invalid refresh token: ${(error as Error).message}`
         ),
       };
     }
@@ -177,7 +180,7 @@ class V1UserRepository implements IUserRepository {
       logger.error(error, "Error uploading avatar");
       return {
         data: null,
-        error: new Error(
+        error: new ExternalServiceError(
           "Failed to update avatar: " + (error as Error).message
         ),
       };

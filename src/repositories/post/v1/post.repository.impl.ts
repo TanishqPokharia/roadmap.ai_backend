@@ -7,9 +7,32 @@ import DataOrError from "../../../utils/either";
 import { logger } from "../../../utils/logger";
 import IPostRepository, { PostTime } from "../post.repository.interface";
 import User from "../../../schemas/user";
+import Views from "../../../schemas/views";
+import { NotFoundError, DatabaseError } from "../../../utils/errors";
 
 @injectable()
 class V1PostRepository implements IPostRepository {
+  async getPostRoadmap(postId: string): Promise<DataOrError<IRoadmap>> {
+    try {
+      const post = await Post.findById(postId);
+      if (!post) {
+        return {
+          data: null,
+          error: new NotFoundError("Post not found")
+        };
+      }
+
+      const roadmap = post.roadmap;
+      return { data: roadmap, error: null };
+
+    } catch (error) {
+      logger.error(error, "Error getting roadmap from the post");
+      return {
+        data: null,
+        error: new DatabaseError("Failed to get roadmap from the post")
+      };
+    }
+  }
   async getPopularPosts(
     limit: number,
     skip: number
@@ -19,6 +42,8 @@ class V1PostRepository implements IPostRepository {
         createdAt: {
           $gte: new Date(Date.now() - 1000 * 60 * 60 * 24 * 14),
         },
+      }).select({
+        roadmap: 0 // exclude the roadmap
       })
         .limit(limit)
         .skip(skip)
@@ -30,7 +55,7 @@ class V1PostRepository implements IPostRepository {
       logger.error(error, "Error getting popular posts");
       return {
         data: null,
-        error: new Error(
+        error: new DatabaseError(
           `Failed to get popular posts: ${(error as Error).message}`
         ),
       };
@@ -48,6 +73,7 @@ class V1PostRepository implements IPostRepository {
         .sort({ likes: -1 })
         .limit(limit)
         .skip(skip)
+        .populate("author", "username email avatar id")
         .exec();
 
       return { data: posts, error: null };
@@ -55,7 +81,7 @@ class V1PostRepository implements IPostRepository {
       logger.error(error, "Error getting posts by title");
       return {
         data: null,
-        error: new Error(
+        error: new DatabaseError(
           `Failed to get posts by title: ${(error as Error).message}`
         ),
       };
@@ -73,7 +99,7 @@ class V1PostRepository implements IPostRepository {
       if (!userInfo) {
         return {
           data: null,
-          error: new Error("User not found"),
+          error: new NotFoundError("User not found"),
         };
       }
 
@@ -94,7 +120,7 @@ class V1PostRepository implements IPostRepository {
       logger.error(error, "Error uploading post");
       return {
         data: null,
-        error: new Error(`Failed to upload post: ${(error as Error).message}`),
+        error: new DatabaseError(`Failed to upload post: ${(error as Error).message}`),
       };
     }
   }
@@ -125,7 +151,7 @@ class V1PostRepository implements IPostRepository {
       logger.error(error, "Error getting posts by time");
       return {
         data: null,
-        error: new Error(
+        error: new DatabaseError(
           `Failed to get posts by time: ${(error as Error).message}`
         ),
       };
@@ -156,7 +182,7 @@ class V1PostRepository implements IPostRepository {
       if (!post) {
         return {
           data: null,
-          error: new Error("Post not found"),
+          error: new NotFoundError("Post not found"),
         };
       }
       return {
@@ -167,7 +193,7 @@ class V1PostRepository implements IPostRepository {
       logger.error(error, "Error toggling post like");
       return {
         data: null,
-        error: new Error(
+        error: new DatabaseError(
           `Failed to toggle post like: ${(error as Error).message}`
         ),
       };
@@ -195,9 +221,29 @@ class V1PostRepository implements IPostRepository {
       logger.error(error, "Error getting posts by author");
       return {
         data: null,
-        error: new Error(
+        error: new DatabaseError(
           `Failed to get posts by author: ${(error as Error).message}`
         ),
+      };
+    }
+  }
+
+  async toggleView(userId: string, postId: string): Promise<DataOrError<void>> {
+    try {
+      // check if the post is viewd by the user
+      const isViewed = await Views.findOne({ userId, postId });
+      // do nothing if the post is already viewed
+      if (isViewed) return { data: null, error: null };
+
+      // if it is not viewed, add the entry in the Views collection and increment the views count in the post
+      await Views.insertOne({ userId, postId });
+      await Post.updateOne({ _id: postId }, { $inc: { views: 1 } });
+      return { data: null, error: null };
+    } catch (error) {
+      logger.error(error, "Error checking viewed or updating view count");
+      return {
+        data: null,
+        error: new DatabaseError(`Failed to check or increase views: ${(error as Error).message}`)
       };
     }
   }

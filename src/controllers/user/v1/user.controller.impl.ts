@@ -1,14 +1,15 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import IUserController from "../user.controller.interface";
 import IUserRepository from "../../../repositories/user/user.repository.interface";
 import { inject, injectable } from "tsyringe";
 import { file, z } from "zod/v4";
 import { logger } from "../../../utils/logger";
+import { ValidationError } from "../../../utils/errors";
 
 @injectable()
 class V1UserController implements IUserController {
-  constructor(@inject("UserRepository") private repo: IUserRepository) {}
-  signUp = async (req: Request, res: Response): Promise<void> => {
+  constructor(@inject("UserRepository") private repo: IUserRepository) { }
+  signUp = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const { username, email, password } = req.body;
     const signUpScehma = z.object({
       username: z.string().min(8, "Username is required").max(20),
@@ -24,8 +25,7 @@ class V1UserController implements IUserController {
     });
 
     if (!validation.success) {
-      res.status(400).json({ error: z.prettifyError(validation.error) });
-      return;
+      throw new ValidationError(z.prettifyError(validation.error));
     }
 
     const validated = validation.data;
@@ -36,14 +36,14 @@ class V1UserController implements IUserController {
       validated.password
     );
     if (error) {
-      res.status(500).json({ error: error.message });
+      next(error);
       return;
     }
     const { accessToken, refreshToken } = tokens!;
 
     res.status(201).json({ accessToken, refreshToken });
   };
-  login = async (req: Request, res: Response): Promise<void> => {
+  login = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const { email, password } = req.body;
     const loginSchema = z.object({
       email: z.email("Invalid email format"),
@@ -56,8 +56,7 @@ class V1UserController implements IUserController {
       password,
     });
     if (!validation.success) {
-      res.status(400).json({ error: z.prettifyError(validation.error) });
-      return;
+      throw new ValidationError(z.prettifyError(validation.error));
     }
     const validated = validation.data;
 
@@ -66,7 +65,7 @@ class V1UserController implements IUserController {
       validated.password
     );
     if (error) {
-      res.status(500).json({ error: error.message });
+      next(error);
       return;
     }
     const { accessToken, refreshToken } = tokens!;
@@ -74,10 +73,9 @@ class V1UserController implements IUserController {
     res.status(200).json({ accessToken, refreshToken });
   };
 
-  refresh = async (req: Request, res: Response): Promise<void> => {
+  refresh = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     if (!req.body) {
-      res.status(400).json({ error: "Request body is required" });
-      return;
+      throw new ValidationError("Request body is required");
     }
 
     const { refreshToken } = req.body;
@@ -87,8 +85,7 @@ class V1UserController implements IUserController {
     const validation = refreshSchema.safeParse({ refreshToken });
 
     if (!validation.success) {
-      res.status(400).json({ error: z.prettifyError(validation.error) });
-      return;
+      throw new ValidationError(z.prettifyError(validation.error));
     }
 
     const validated = validation.data;
@@ -97,7 +94,7 @@ class V1UserController implements IUserController {
       validated.refreshToken
     );
     if (error) {
-      res.status(500).json({ error: error.message });
+      next(error);
       return;
     }
     const { accessToken, refreshToken: newRefreshToken } = tokens!;
@@ -105,11 +102,10 @@ class V1UserController implements IUserController {
     res.status(200).json({ accessToken, refreshToken: newRefreshToken });
   };
 
-  uploadAvatar = async (req: Request, res: Response): Promise<void> => {
+  uploadAvatar = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const userId = req.token;
     if (!req.file) {
-      res.status(400).json({ error: "Avatar file is required" });
-      return;
+      throw new ValidationError("Avatar file is required");
     }
 
     logger.info("File:" + req.file.originalname);
@@ -117,8 +113,7 @@ class V1UserController implements IUserController {
     const avatar = req.file.buffer;
 
     if (!avatar) {
-      res.status(400).json({ error: "Could not process avatar file path" });
-      return;
+      throw new ValidationError("Could not process avatar file path");
     }
 
     logger.info("AVATAR : " + avatar);
@@ -128,7 +123,7 @@ class V1UserController implements IUserController {
       avatar
     );
     if (error) {
-      res.status(500).json({ error: error.message });
+      next(error);
       return;
     }
     res.status(200).json({ avatar: data });
