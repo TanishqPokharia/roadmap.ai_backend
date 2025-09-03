@@ -6,6 +6,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon --exec ts-node src/app.ts",
     "build": "tsc --project tsconfig.json",
+    "start": "node public/app.js",
     "lint": "eslint . --ext .ts,.js"
   },
   "keywords": [],

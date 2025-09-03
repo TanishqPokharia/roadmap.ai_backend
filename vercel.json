@@ -2,7 +2,7 @@
     "builds": [
         {
             "src": "public/app.js",
-            "use": "@vercel/static",
+            "use": "@vercel/node",
             "config": {
                 "includeFiles": [
                     "public/**"
