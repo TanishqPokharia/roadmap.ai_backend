@@ -18,6 +18,7 @@ class V1RoadmapController implements IRoadmapController {
       userId: z.string().min(1, "User ID is required."),
       roadmap: z.object({
         title: z.string().min(1, "Roadmap title is required").max(100),
+        description: z.string().min(10, "Description is required").max(200),
         goals: z.array(z.any()).min(1, "Roadmap must have at least one goal"),
       }),
     });
@@ -26,7 +27,9 @@ class V1RoadmapController implements IRoadmapController {
       roadmap,
     });
     if (!validatedRoadmap.success) {
-      throw new ValidationError(z.prettifyError(validatedRoadmap.error));
+      // use next function instead
+      next(new ValidationError(z.prettifyError(validatedRoadmap.error)));
+      return;
     }
     const validated = validatedRoadmap.data;
 
@@ -59,8 +62,8 @@ class V1RoadmapController implements IRoadmapController {
 
     const getRoadmapsMetaDataSchema = z.object({
       userId: z.string().nonempty("User ID is required."),
-      limit: z.number().optional(),
-      skip: z.number().optional(),
+      limit: z.preprocess((val) => Number(val), z.int().nonnegative().optional()),
+      skip: z.preprocess((val) => Number(val), z.int().nonnegative().optional()),
     });
     const validateInputs = getRoadmapsMetaDataSchema.safeParse({
       userId,
@@ -68,7 +71,8 @@ class V1RoadmapController implements IRoadmapController {
       skip,
     });
     if (!validateInputs.success) {
-      throw new ValidationError(z.prettifyError(validateInputs.error));
+      next(new ValidationError(z.prettifyError(validateInputs.error)));
+      return;
     }
 
     const validated = validateInputs.data;
@@ -100,7 +104,8 @@ class V1RoadmapController implements IRoadmapController {
     });
 
     if (!validateInputs.success) {
-      throw new ValidationError(z.prettifyError(validateInputs.error));
+      next(new ValidationError(z.prettifyError(validateInputs.error)));
+      return;
     }
 
     const validatedData = validateInputs.data;
@@ -123,7 +128,8 @@ class V1RoadmapController implements IRoadmapController {
     const { roadmapId, subgoalId, goalId } = req.params;
 
     if (!req.body) {
-      throw new ValidationError("Request body is required.");
+      next(new ValidationError("Request body is required."));
+      return;
     }
 
     const { status } = req.body;
@@ -140,7 +146,8 @@ class V1RoadmapController implements IRoadmapController {
     });
 
     if (!validatedStatus.success) {
-      throw new ValidationError(z.prettifyError(validatedStatus.error));
+      next(new ValidationError(z.prettifyError(validatedStatus.error)));
+      return;
     }
 
     const { data: message, error } = await this.repo.setRoadmapSubgoalStatus(
@@ -161,7 +168,8 @@ class V1RoadmapController implements IRoadmapController {
     logger.info("Generating roadmap...");
     const { topic } = req.query;
     if (typeof topic !== "string" || topic.trim() === "") {
-      throw new ValidationError("Topic is required and must be a non-empty string.");
+      next(new ValidationError("Topic is required and must be a non-empty string."));
+      return;
     }
 
     const { data: roadmap, error } = await this.repo.generateRoadmap(topic);

@@ -9,10 +9,22 @@ import { ValidationError } from "../../../utils/errors";
 @injectable()
 class V1UserController implements IUserController {
   constructor(@inject("UserRepository") private repo: IUserRepository) { }
+  logout = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    res.clearCookie("tokens", { httpOnly: true, sameSite: "strict", signed: true, path: "/api" }).status(200).json({ message: "User logged out successfully" });
+  }
+  validateCookie = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    const userId = req.token;
+    if (!userId) {
+      res.status(401).json({ message: 'Unauthorized' });
+      return;
+    }
+
+    res.status(200).json({ message: 'Validated' });
+  }
   signUp = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const { username, email, password } = req.body;
     const signUpScehma = z.object({
-      username: z.string().min(8, "Username is required").max(20),
+      username: z.string().min(8, "Min. 8 length username is required").max(20),
       email: z.email("Invalid email format"),
       password: z
         .string()
@@ -25,7 +37,8 @@ class V1UserController implements IUserController {
     });
 
     if (!validation.success) {
-      throw new ValidationError(z.prettifyError(validation.error));
+      next(new ValidationError(z.prettifyError(validation.error)));
+      return;
     }
 
     const validated = validation.data;
@@ -41,7 +54,13 @@ class V1UserController implements IUserController {
     }
     const { accessToken, refreshToken } = tokens!;
 
-    res.status(201).json({ accessToken, refreshToken });
+    if (req.useragent?.isAndroid || req.useragent?.isiPhone || req.useragent?.isiPad || req.useragent?.isMobile) {
+      res.status(201).json({ accessToken, refreshToken });
+    } else {
+      res.status(201).cookie("tokens", { accessToken, refreshToken }, { httpOnly: true, sameSite: "strict", signed: true, path: "/api" }).json({ message: "User registered successfully" });
+    }
+
+
   };
   login = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const { email, password } = req.body;
@@ -56,7 +75,8 @@ class V1UserController implements IUserController {
       password,
     });
     if (!validation.success) {
-      throw new ValidationError(z.prettifyError(validation.error));
+      next(new ValidationError(z.prettifyError(validation.error)));
+      return;
     }
     const validated = validation.data;
 
@@ -70,22 +90,39 @@ class V1UserController implements IUserController {
     }
     const { accessToken, refreshToken } = tokens!;
 
-    res.status(200).json({ accessToken, refreshToken });
+    if (req.useragent?.isAndroid || req.useragent?.isiPhone || req.useragent?.isiPad || req.useragent?.isMobile) {
+      res.status(200).json({ accessToken, refreshToken });
+    } else {
+      res.status(200).cookie("tokens", { accessToken, refreshToken }, { httpOnly: true, sameSite: "strict", signed: true, path: "/api" }).json({ message: "User logged in successfully" });
+    }
   };
 
   refresh = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     if (!req.body) {
-      throw new ValidationError("Request body is required");
+      next(new ValidationError("Request body is required"));
+      return;
     }
 
-    const { refreshToken } = req.body;
+    let refreshToken: string;
+    if (req.useragent?.isAndroid || req.useragent?.isiPhone || req.useragent?.isiPad || req.useragent?.isMobile) {
+      refreshToken = req.body.refreshToken;
+    } else {
+      if (!req.signedCookies || !req.signedCookies.tokens || !req.signedCookies.tokens.refreshToken) {
+        next(new ValidationError("Refresh token is required"));
+        return;
+      }
+      refreshToken = req.signedCookies.tokens.refreshToken;
+    }
+
+
     const refreshSchema = z.object({
       refreshToken: z.string().min(1, "Refresh token is required"),
     });
     const validation = refreshSchema.safeParse({ refreshToken });
 
     if (!validation.success) {
-      throw new ValidationError(z.prettifyError(validation.error));
+      next(new ValidationError(z.prettifyError(validation.error)));
+      return;
     }
 
     const validated = validation.data;
@@ -99,13 +136,18 @@ class V1UserController implements IUserController {
     }
     const { accessToken, refreshToken: newRefreshToken } = tokens!;
 
-    res.status(200).json({ accessToken, refreshToken: newRefreshToken });
+    if (req.useragent?.isAndroid || req.useragent?.isiPhone || req.useragent?.isiPad || req.useragent?.isMobile) {
+      res.status(200).json({ accessToken, refreshToken: newRefreshToken });
+    } else {
+      res.status(200).cookie("tokens", { accessToken, refreshToken: newRefreshToken }, { httpOnly: true, sameSite: "strict", signed: true, path: "/api" }).json({ message: "Token refreshed successfully" });
+    }
   };
 
   uploadAvatar = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const userId = req.token;
     if (!req.file) {
-      throw new ValidationError("Avatar file is required");
+      next(new ValidationError("Avatar file is required"));
+      return;
     }
 
     logger.info("File:" + req.file.originalname);
@@ -113,7 +155,8 @@ class V1UserController implements IUserController {
     const avatar = req.file.buffer;
 
     if (!avatar) {
-      throw new ValidationError("Could not process avatar file path");
+      next(new ValidationError("Could not process avatar file path"));
+      return;
     }
 
     logger.info("AVATAR : " + avatar);
@@ -128,6 +171,16 @@ class V1UserController implements IUserController {
     }
     res.status(200).json({ avatar: data });
   };
+
+  getUserDetails = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    const userId = req.token;
+    const { data, error } = await this.repo.getUserDetails(userId.toString());
+    if (error) {
+      next(error);
+      return;
+    }
+    res.status(200).json(data);
+  }
 }
 
 export default V1UserController;

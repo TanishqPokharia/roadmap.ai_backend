@@ -186,6 +186,32 @@ class V1UserRepository implements IUserRepository {
       };
     }
   }
+
+  async getUserDetails(userId: string): Promise<DataOrError<{ username: string; email: string; avatarUrl?: string | null; }>> {
+    try {
+      const user = await User.findById(userId, "username email avatar").exec();
+      if (!user) {
+        return {
+          data: null,
+          error: new NotFoundError("User not found"),
+        };
+      }
+      return {
+        data: {
+          username: user.username,
+          email: user.email,
+          avatarUrl: user.avatar,
+        },
+        error: null,
+      };
+    } catch (error) {
+      logger.error(error, "Error fetching user details");
+      return {
+        data: null,
+        error: new DatabaseError(`Failed to get user details: ${(error as Error).message}`),
+      };
+    }
+  }
 }
 
 export default V1UserRepository;

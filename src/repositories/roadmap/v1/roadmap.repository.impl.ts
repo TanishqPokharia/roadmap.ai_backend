@@ -82,6 +82,7 @@ class V1RoadmapRepository implements IRoadmapRepository {
       const savedRoadmap = await Roadmap.create({
         userId: userId,
         title: roadmap.title,
+        description: roadmap.description,
         goals: roadmap.goals,
       });
 

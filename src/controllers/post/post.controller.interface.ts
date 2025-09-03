@@ -7,5 +7,7 @@ export default interface IPostController {
   getPostsByTime(req: Request, res: Response, next: NextFunction): Promise<void>;
   togglePostLike(req: Request, res: Response, next: NextFunction): Promise<void>;
   getPostsByAuthor(req: Request, res: Response, next: NextFunction): Promise<void>;
-  getPostRoadmap(req: Request, res: Response, next: NextFunction): Promise<void>;
+  getPostedRoadmap(req: Request, res: Response, next: NextFunction): Promise<void>;
+  getUserPostsMetaData(req: Request, res: Response, next: NextFunction): Promise<void>;
+  getUserPostRoadmap(req: Request, res: Response, next: NextFunction): Promise<void>;
 }

@@ -4,6 +4,7 @@ import IRoadmapGoal from "./roadmap.goal";
 interface IRoadmap {
   _id: Types.ObjectId;
   title: string;
+  description: string;
   goals: IRoadmapGoal[];
   userId: Types.ObjectId;
   status: {

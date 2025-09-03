@@ -16,6 +16,10 @@ export const roadmapSchema = new mongoose.Schema<RoadmapDocument>({
     minlength: 10,
     maxlength: 100,
   },
+  description: {
+    type: String,
+    required: true,
+  },
   goals: {
     type: [roadmapGoalSchema],
     required: true,

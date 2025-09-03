@@ -21,10 +21,26 @@ export default interface IPostRepository {
     limit: number,
     skip: number
   ): Promise<DataOrError<IPost[]>>;
+
+  /**
+   * Fetch roadmaps posted by a user
+   */
+  getUserPostsMetaData(
+    userId: string,
+    limit: number,
+    skip: number
+  ): Promise<DataOrError<IPost[]>>;
+  /**
+   * Fetch the roadmap of the selected post if it belongs to the user
+   */
+  getUserPostRoadmap(
+    userId: string,
+    postId: string
+  ): Promise<DataOrError<IRoadmap>>;
   /**
    * Fetch the roadmap of the selected post
    */
-  getPostRoadmap(postId: string): Promise<DataOrError<IRoadmap>>
+  getPostedRoadmap(postId: string): Promise<DataOrError<IRoadmap>>
   /**
    * Increases the view count of post if previously not viewed by a user
    */

@@ -6,13 +6,19 @@ const responseSchema: Schema = {
   properties: {
     roadmap: {
       type: Type.OBJECT,
-      required: ["title", "goals"],
+      required: ["title", "description", "goals"],
       properties: {
         title: {
           type: Type.STRING,
           description: "The title of the roadmap.",
           minLength: "10",
           maxLength: "60",
+        },
+        description: {
+          type: Type.STRING,
+          description: "A brief description of the roadmap.",
+          minLength: "10",
+          maxLength: "200",
         },
         goals: {
           type: Type.ARRAY,

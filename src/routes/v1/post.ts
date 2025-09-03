@@ -10,9 +10,11 @@ const controller: IPostController = container.resolve("PostController");
 router.get("/", controller.getPopularPosts);
 router.get("/time", controller.getPostsByTime);
 router.get("/search", controller.getPostsByTitle);
+router.get("/user", checkToken, controller.getUserPostsMetaData);
+router.get("/user/:postId", checkToken, controller.getUserPostRoadmap);
+router.get("/roadmap/:postId", controller.getPostedRoadmap);
 router.get("/:authorId", controller.getPostsByAuthor);
-router.get("/roadmap/:postId", controller.getPostRoadmap);
-router.patch("/like/:postId", controller.togglePostLike);
-router.post("/", controller.uploadPost);
+router.patch("/like/:postId", checkToken, controller.togglePostLike);
+router.post("/", checkToken, controller.uploadPost);
 
 export default router;

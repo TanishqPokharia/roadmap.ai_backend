@@ -7,16 +7,28 @@ import { registerDependencies } from "./utils/register.dependencies";
 registerDependencies();
 
 import express from "express";
+import cors from "cors";
 import v1Router from "./routes/v1/index";
 import mongoose from "mongoose";
 import { httpLogger, logger } from "./utils/logger";
+import errorHandler from "./middlewares/error.handler";
+import useragent from "express-useragent";
+import cookieParser from "cookie-parser";
 const app = express();
 
+// Enable CORS for all origins
+app.use(cors());
+
 app.use(express.json());
+app.use(cookieParser(process.env.COOKIE_SECRET));
 app.use(express.urlencoded({ extended: true }));
 app.use(httpLogger);
+app.use(useragent.express());
+
 
 app.use("/api/v1", v1Router);
+
+app.use(errorHandler);
 
 // Connect to MongoDB
 mongoose

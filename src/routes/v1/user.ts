@@ -20,6 +20,10 @@ const uploader = multer({
 const router = Router();
 
 const controller: IUserController = container.resolve("UserController");
+
+router.get("/validate", controller.validateCookie);
+router.get("/logout", controller.logout);
+router.get("/details", checkToken, controller.getUserDetails);
 router.post("/signup", controller.signUp);
 router.post("/login", controller.login);
 router.post("/refresh", controller.refresh);

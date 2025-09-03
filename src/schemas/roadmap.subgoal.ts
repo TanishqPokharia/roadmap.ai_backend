@@ -24,13 +24,12 @@ const roadmapSubgoalSchema = new mongoose.Schema<RoadmapSubgoalDocument>({
   title: {
     type: String,
     required: true,
-    minlength: 10,
     maxlength: 100,
   },
   description: {
     type: String,
     required: true,
-    minlength: 20,
+    minlength: 10,
     maxlength: 500,
   },
   duration: {

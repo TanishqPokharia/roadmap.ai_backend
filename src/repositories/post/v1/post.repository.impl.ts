@@ -12,7 +12,7 @@ import { NotFoundError, DatabaseError } from "../../../utils/errors";
 
 @injectable()
 class V1PostRepository implements IPostRepository {
-  async getPostRoadmap(postId: string): Promise<DataOrError<IRoadmap>> {
+  async getPostedRoadmap(postId: string): Promise<DataOrError<IRoadmap>> {
     try {
       const post = await Post.findById(postId);
       if (!post) {
@@ -103,15 +103,9 @@ class V1PostRepository implements IPostRepository {
         };
       }
 
-      const { email, username } = userInfo;
       const post = new Post({
-        userId,
+        authorId: userId,
         roadmap,
-        author: {
-          authorId: userId,
-          username,
-          email,
-        },
       });
 
       const savedPost = await post.save();
@@ -200,6 +194,62 @@ class V1PostRepository implements IPostRepository {
     }
   }
 
+  async getUserPostsMetaData(
+    userId: string,
+    limit: number,
+    skip: number
+  ): Promise<DataOrError<IPost[]>> {
+    try {
+      const posts = await Post.find({ authorId: userId })
+        .select({
+          roadmap: 0 // exclude the roadmap
+        })
+        .limit(limit)
+        .skip(skip)
+        .sort({ createdAt: -1 })
+        .populate("author", "username email avatar")
+        .exec();
+
+      return { data: posts, error: null };
+    } catch (error) {
+      logger.error(error, "Error getting user posted roadmaps");
+      return {
+        data: null,
+        error: new DatabaseError(
+          `Failed to get user posted roadmaps: ${(error as Error).message}`
+        ),
+      };
+    }
+  }
+
+  async getUserPostRoadmap(
+    userId: string,
+    postId: string
+  ): Promise<DataOrError<IRoadmap>> {
+    try {
+      const post = await Post.findOne({ _id: postId, authorId: userId })
+        .populate("roadmap")
+        .exec();
+
+      if (!post) {
+        return {
+          data: null,
+          error: new NotFoundError("Post not found or does not belong to user"),
+        };
+      }
+
+      return { data: post.roadmap, error: null };
+    } catch (error) {
+      logger.error(error, "Error getting user posted roadmap");
+      return {
+        data: null,
+        error: new DatabaseError(
+          `Failed to get user posted roadmap: ${(error as Error).message}`
+        ),
+      };
+    }
+  }
+
   async getPostsByAuthor(
     authorId: string,
     limit: number,
@@ -236,7 +286,7 @@ class V1PostRepository implements IPostRepository {
       if (isViewed) return { data: null, error: null };
 
       // if it is not viewed, add the entry in the Views collection and increment the views count in the post
-      await Views.insertOne({ userId, postId });
+      await Views.create({ userId, postId });
       await Post.updateOne({ _id: postId }, { $inc: { views: 1 } });
       return { data: null, error: null };
     } catch (error) {

@@ -19,7 +19,8 @@ class V1PostController implements IPostController {
       skip,
     });
     if (!validation.success) {
-      throw new ValidationError(z.prettifyError(validation.error));
+      next(new ValidationError(z.prettifyError(validation.error)));
+      return;
     }
     const validated = validation.data;
     const { data: posts, error } = await this.repo.getPopularPosts(
@@ -48,7 +49,8 @@ class V1PostController implements IPostController {
     });
 
     if (!validation.success) {
-      throw new ValidationError(z.prettifyError(validation.error));
+      next(new ValidationError(z.prettifyError(validation.error)));
+      return;
     }
 
     const validated = validation.data;
@@ -67,7 +69,8 @@ class V1PostController implements IPostController {
   uploadPost = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const userId = req.token;
     if (!req.body) {
-      throw new ValidationError("Request body is required");
+      next(new ValidationError("Request body is required"));
+      return;
     }
     const { roadmap } = req.body;
 
@@ -75,7 +78,7 @@ class V1PostController implements IPostController {
     const post = z.object({
       userId: z.string().min(1, "User ID is required"),
       roadmap: z.object({
-        _id: z.string().min(1, "Roadmap ID is required"),
+        id: z.string().min(1, "Roadmap ID is required"),
         title: z.string().min(1, "Roadmap title is required").max(100),
         goals: z.array(z.any()).min(1, "Roadmap must have at least one goal"),
       }),
@@ -87,7 +90,8 @@ class V1PostController implements IPostController {
     });
 
     if (!validation.success) {
-      throw new ValidationError(z.prettifyError(validation.error));
+      next(new ValidationError(z.prettifyError(validation.error)));
+      return;
     }
 
     const validated = validation.data;
@@ -108,18 +112,19 @@ class V1PostController implements IPostController {
     // validate params
     const postTimeSchema = z.object({
       time: z.enum(["day", "week", "month", "year"]),
-      limit: z.number().int().nonnegative(),
-      skip: z.number().int().nonnegative(),
+      limit: z.preprocess((val) => Number(val), z.number().int().nonnegative()),
+      skip: z.preprocess((val) => Number(val), z.number().int().nonnegative()),
     });
 
     const validation = postTimeSchema.safeParse({
       time,
-      limit: limit,
-      skip: skip,
+      limit,
+      skip,
     });
 
     if (!validation.success) {
-      throw new ValidationError(z.prettifyError(validation.error));
+      next(new ValidationError(z.prettifyError(validation.error)));
+      return;
     }
 
     const validated = validation.data;
@@ -148,7 +153,8 @@ class V1PostController implements IPostController {
     const validation = toggleLikeSchema.safeParse({ userId, postId });
 
     if (!validation.success) {
-      throw new ValidationError(z.prettifyError(validation.error));
+      next(new ValidationError(z.prettifyError(validation.error)));
+      return;
     }
 
     const validated = validation.data;
@@ -171,8 +177,8 @@ class V1PostController implements IPostController {
     // validate params
     const authorPostsSchema = z.object({
       authorId: z.string().min(1, "Author ID is required"),
-      limit: z.preprocess((val) => Number(val), z.number().int().nonnegative()),
-      skip: z.preprocess((val) => Number(val), z.number().int().nonnegative()),
+      limit: z.preprocess((val) => Number(val), z.int().nonnegative()),
+      skip: z.preprocess((val) => Number(val), z.int().nonnegative()),
     });
 
     const validation = authorPostsSchema.safeParse({
@@ -182,7 +188,8 @@ class V1PostController implements IPostController {
     });
 
     if (!validation.success) {
-      throw new ValidationError(z.prettifyError(validation.error));
+      next(new ValidationError(z.prettifyError(validation.error)));
+      return;
     }
 
     const validated = validation.data;
@@ -201,13 +208,14 @@ class V1PostController implements IPostController {
 
 
 
-  getPostRoadmap = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  getPostedRoadmap = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const postId = req.params.postId;
     const userId = req.token as string;
     if (!postId) {
-      throw new ValidationError("post id is required");
+      next(new ValidationError("post id is required"));
+      return;
     }
-    const { data: roadmap, error } = await this.repo.getPostRoadmap(postId);
+    const { data: roadmap, error } = await this.repo.getPostedRoadmap(postId);
     if (error) {
       next(error);
       return;
@@ -217,6 +225,51 @@ class V1PostController implements IPostController {
     setImmediate(() => {
       this.repo.toggleView(userId, postId);
     });
+    res.status(200).json({ roadmap });
+  }
+
+  getUserPostsMetaData = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    const userId = req.token as string;
+    const { limit, skip } = req.query;
+    const getUserPostedRoadmapsMetaDataSchema = z.object({
+      userId: z.string().nonempty("User ID is required."),
+      limit: z.preprocess((val) => Number(val), z.int().nonnegative().optional()),
+      skip: z.preprocess((val) => Number(val), z.int().nonnegative().optional()),
+    });
+    const validateInputs = getUserPostedRoadmapsMetaDataSchema.safeParse({
+      userId,
+      limit,
+      skip,
+    });
+    if (!validateInputs.success) {
+      next(new ValidationError(z.prettifyError(validateInputs.error)));
+      return;
+    }
+    const validated = validateInputs.data;
+    const { data: posts, error } = await this.repo.getUserPostsMetaData(
+      validated.userId,
+      validated.limit ?? 10,
+      validated.skip ?? 0
+    );
+    if (error) {
+      next(error);
+      return;
+    }
+    res.status(200).json({ posts });
+  }
+
+  getUserPostRoadmap = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    const userId = req.token as string;
+    const postId = req.params.postId;
+    if (!postId) {
+      next(new ValidationError("post id is required"));
+      return;
+    }
+    const { data: roadmap, error } = await this.repo.getUserPostRoadmap(userId, postId);
+    if (error) {
+      next(error);
+      return;
+    }
     res.status(200).json({ roadmap });
   }
 }
