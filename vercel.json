@@ -10,9 +10,6 @@
             }
         }
     ],
-    "scripts": {
-        "build": "tsc && node public/app.js"
-    },
     "routes": [
         {
             "src": "/(.*)",
