@@ -37,9 +37,12 @@ mongoose_1.default
     const message = error.message;
     logger_1.logger.fatal("Failed to connect to MongoDB:", message);
 });
-app.listen(3000, () => {
-    logger_1.logger.info("Server is running on port 3000");
-});
+// Only listen on port in development/local environment
+if (require.main === module) {
+    app.listen(3000, () => {
+        logger_1.logger.info("Server is running on port 3000");
+    });
+}
 // Configure Cloudinary
 const cloudinary_1 = require("cloudinary");
 cloudinary_1.v2.config({
