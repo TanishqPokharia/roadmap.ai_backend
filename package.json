@@ -5,12 +5,17 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "eslint . --ext .ts,.js",
-    "build": "tsc --project tsconfig.json",
+    "build": "rimraf dist && tsc",
     "start": "nodemon dist/app.js",
-    "ts.check": "tsc --project tsconfig.json",
+    "ts-check": "tsc --project tsconfig.json",
     "add-build": "git add dist",
     "dev": "tsc && node dist/app.js"
   },
+  "pre-commit": [
+    "ts-check",
+    "build",
+    "add-build"
+  ],
   "keywords": [],
   "author": "",
   "license": "ISC",
@@ -52,6 +57,7 @@
     "eslint": "^9.28.0",
     "globals": "^16.2.0",
     "pino-pretty": "^13.0.0",
+    "pre-commit": "^1.2.2",
     "rimraf": "^6.0.1",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.3",

@@ -1,0 +1,20 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const check_token_1 = __importDefault(require("../../middlewares/check.token"));
+const tsyringe_1 = require("tsyringe");
+const router = (0, express_1.Router)();
+const controller = tsyringe_1.container.resolve("PostController");
+router.get("/", controller.getPopularPosts);
+router.get("/time", controller.getPostsByTime);
+router.get("/search", controller.getPostsByTitle);
+router.get("/user", check_token_1.default, controller.getUserPostsMetaData);
+router.get("/user/:postId", check_token_1.default, controller.getUserPostRoadmap);
+router.get("/roadmap/:postId", controller.getPostedRoadmap);
+router.get("/:authorId", controller.getPostsByAuthor);
+router.patch("/like/:postId", check_token_1.default, controller.togglePostLike);
+router.post("/", check_token_1.default, controller.uploadPost);
+exports.default = router;
