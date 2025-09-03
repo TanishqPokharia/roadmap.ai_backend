@@ -6,15 +6,22 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.httpLogger = exports.logger = void 0;
 const pino_1 = __importDefault(require("pino"));
 const pino_http_1 = __importDefault(require("pino-http"));
-const logger = (0, pino_1.default)({
-    transport: {
-        target: "pino-pretty",
-        options: {
-            colorize: true,
-            messageFormat: "{req.method} {req.url} - {res.statusCode} - {msg}",
+// Configure logger based on environment
+const logger = (0, pino_1.default)(process.env.NODE_ENV === "production" || process.env.VERCEL
+    ? {
+        // Production configuration - simple JSON output
+        level: "info",
+    }
+    : {
+        // Development configuration - pretty output
+        transport: {
+            target: "pino-pretty",
+            options: {
+                colorize: true,
+                messageFormat: "{req.method} {req.url} - {res.statusCode} - {msg}",
+            },
         },
-    },
-});
+    });
 exports.logger = logger;
 const httpLogger = (0, pino_http_1.default)({
     logger,
