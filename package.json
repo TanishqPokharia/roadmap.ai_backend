@@ -4,10 +4,12 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon --exec ts-node src/app.ts",
-    "build": "tsc --project tsconfig.json",
-    "start": "node public/app.js",
-    "lint": "eslint . --ext .ts,.js"
+    "lint": "eslint . --ext .ts,.js",
+    "build": "rimraf dist && tsc",
+    "start": "nodemon dist/app.js",
+    "ts.check": "tsc --project tsconfig.json",
+    "add-build": "git add dist",
+    "dev": "tsc && node dist/app.js"
   },
   "keywords": [],
   "author": "",
