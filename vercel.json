@@ -1,0 +1,19 @@
+{
+    "builds": [
+        {
+            "src": "public/app.js",
+            "use": "@vercel/static",
+            "config": {
+                "includeFiles": [
+                    "public/**"
+                ]
+            }
+        }
+    ],
+    "routes": [
+        {
+            "src": "/(.*)",
+            "dest": "public/app.js"
+        }
+    ]
+}
