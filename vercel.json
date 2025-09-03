@@ -1,6 +1,7 @@
 {
     "builds": [
         {
+            "build": "tsc && node public/app.js",
             "src": "public/app.js",
             "use": "@vercel/static",
             "config": {
