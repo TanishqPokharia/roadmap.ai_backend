@@ -13,7 +13,7 @@
     ],
     "routes": [
         {
-            "src": "/api/v1/(.*)",
+            "src": "/(.*)",
             "dest": "dist/app.js"
         }
     ]
