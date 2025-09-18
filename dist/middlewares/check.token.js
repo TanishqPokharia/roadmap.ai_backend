@@ -25,12 +25,18 @@ const checkToken = (req, res, next) => __awaiter(void 0, void 0, void 0, functio
 const webHandler = (req, res, next) => {
     try {
         // check cookies for token
-        const tokenString = req.signedCookies.tokens.accessToken;
-        if (!tokenString) {
+        const tokens = req.signedCookies.tokens;
+        if (!tokens) {
+            logger_1.logger.warn("No tokens found in signed cookies");
             res.status(401).json({ error: "Unauthorized" });
             return;
         }
-        const token = jsonwebtoken_1.default.verify(tokenString, process.env.ACCESS_TOKEN_SECRET);
+        const accessToken = req.signedCookies.tokens.accessToken;
+        if (!accessToken) {
+            res.status(401).json({ error: "Unauthorized" });
+            return;
+        }
+        const token = jsonwebtoken_1.default.verify(accessToken, process.env.ACCESS_TOKEN_SECRET);
         if (typeof token === "string") {
             res.status(401).json({ error: "Unauthorized: Invalid token format" });
             return;

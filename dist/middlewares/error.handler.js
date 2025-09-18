@@ -19,6 +19,6 @@ const errorHandler = (error, req, res, next) => {
     }
     // Log unexpected errors with full details
     logger_1.logger.error(error, "Unexpected error - sending 500 response");
-    res.status(500).json({ error: "Internal Server Error" });
+    res.status(500).json({ error: `${error.message}` });
 };
 exports.default = errorHandler;

@@ -17,13 +17,19 @@ const checkToken = async (
 const webHandler = (req: Request, res: Response, next: NextFunction): void => {
   try {
     // check cookies for token
-    const tokenString = req.signedCookies.tokens.accessToken;
-    if (!tokenString) {
+    const tokens = req.signedCookies.tokens;
+    if (!tokens) {
+      logger.warn("No tokens found in signed cookies");
+      res.status(401).json({ error: "Unauthorized" });
+      return;
+    }
+    const accessToken = req.signedCookies.tokens.accessToken;
+    if (!accessToken) {
       res.status(401).json({ error: "Unauthorized" });
       return;
     }
     const token = jwt.verify(
-      tokenString,
+      accessToken,
       process.env.ACCESS_TOKEN_SECRET as string,
     );
     if (typeof token === "string") {

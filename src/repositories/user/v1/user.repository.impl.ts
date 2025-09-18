@@ -13,7 +13,7 @@ import {
   UploadApiOptions,
   UploadApiResponse,
 } from "cloudinary";
-import { NotFoundError, ValidationError, DatabaseError, ExternalServiceError } from "../../../utils/errors";
+import { NotFoundError, ValidationError as TokenValidationError, DatabaseError, ExternalServiceError } from "../../../utils/errors";
 @injectable()
 class V1UserRepository implements IUserRepository {
   async signUp(
@@ -32,13 +32,13 @@ class V1UserRepository implements IUserRepository {
       if (existingUser) {
         if (existingUser.email === email) {
           return {
-            error: new ValidationError("Email already exists"),
+            error: new TokenValidationError("Email already exists"),
             data: null,
           };
         }
         if (existingUser.username === username) {
           return {
-            error: new ValidationError("Username already exists"),
+            error: new TokenValidationError("Username already exists"),
             data: null,
           };
         }
@@ -88,7 +88,7 @@ class V1UserRepository implements IUserRepository {
       if (!isCorrectPassword) {
         return {
           data: null,
-          error: new ValidationError("Incorrect password"),
+          error: new TokenValidationError("Incorrect password"),
         };
       }
       const accessToken = createAccessToken(user._id.toString());
@@ -126,7 +126,7 @@ class V1UserRepository implements IUserRepository {
       logger.error(error, "Error refreshing token");
       return {
         data: null,
-        error: new ValidationError(
+        error: new TokenValidationError(
           `Invalid refresh token: ${(error as Error).message}`
         ),
       };

@@ -1,14 +1,13 @@
 import { Router } from "express";
 import { container } from "tsyringe";
 import IRoadmapController from "../../controllers/roadmap/roadmap.controller.interface";
-import checkToken from "../../middlewares/check.token";
 
 const router = Router();
 
 const controller: IRoadmapController = container.resolve("RoadmapController");
 
 router.get("/", controller.getPrivateRoadmapsMetaData);
-router.get("/data/:roadmapId", controller.getPrivateRoadmap);
+router.get("/:roadmapId", controller.getPrivateRoadmap);
 router.get("/generate", controller.generateRoadmap);
 router.post("/save", controller.saveRoadmap);
 router.delete("/delete/:roadmapId", controller.deleteRoadmap);

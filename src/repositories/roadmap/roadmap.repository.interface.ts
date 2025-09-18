@@ -9,7 +9,7 @@ export default interface IRoadmapRepository {
     userId: string,
     limit: number,
     offset: number
-  ): Promise<DataOrError<IRoadmap[]>>;
+  ): Promise<DataOrError<IRoadmapMetaData[]>>;
   getPrivateRoadmap(userId: string, roadmapId: string): Promise<DataOrError<IRoadmap>>;
   setRoadmapSubgoalStatus(
     roadmapId: string,

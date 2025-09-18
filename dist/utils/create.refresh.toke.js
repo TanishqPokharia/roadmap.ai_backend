@@ -7,7 +7,7 @@ const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const createRefreshToken = (userId) => {
     const secret = process.env.REFRESH_TOKEN_SECRET;
     const refreshToken = jsonwebtoken_1.default.sign({ userId }, secret, {
-        expiresIn: "2 weeks",
+        expiresIn: "1 week",
         algorithm: "HS256",
     });
     return refreshToken;

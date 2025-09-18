@@ -60,15 +60,25 @@ let V1RoadmapRepository = class V1RoadmapRepository {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const roadmaps = yield roadmap_1.default.find({ userId })
-                    .select({
-                    goals: 0 // remove the goals, just send meta data
-                })
                     .limit(limit)
                     .sort({ createdAt: -1 })
                     .skip(skip)
                     .exec();
+                // process roadmaps into roadmap meta data
+                const roadmapsMetaData = roadmaps.map(r => {
+                    return {
+                        id: r._id.toString(),
+                        title: r.title,
+                        description: r.description,
+                        goalsCount: r.goals.length,
+                        progress: (r.goals.reduce((acc, goal) => {
+                            const completedSubgoals = goal.subgoals.filter(sg => sg.status.completed).length;
+                            return acc + (goal.subgoals.length ? (completedSubgoals / goal.subgoals.length) : 0);
+                        }, 0) / (r.goals.length || 1) * 100).toFixed(2) // percentage
+                    };
+                });
                 return {
-                    data: roadmaps,
+                    data: roadmapsMetaData,
                     error: null
                 };
             }
@@ -84,11 +94,13 @@ let V1RoadmapRepository = class V1RoadmapRepository {
     saveRoadmap(userId, roadmap) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
+                // Ensure all subgoals have a status field with default values
+                const processedGoals = roadmap.goals.map(goal => (Object.assign(Object.assign({}, goal), { subgoals: goal.subgoals.map(subgoal => (Object.assign(Object.assign({}, subgoal), { status: subgoal.status || { completed: false, completedAt: null } }))) })));
                 const savedRoadmap = yield roadmap_1.default.create({
                     userId: userId,
                     title: roadmap.title,
                     description: roadmap.description,
-                    goals: roadmap.goals,
+                    goals: processedGoals,
                 });
                 yield savedRoadmap.save();
                 return { data: "Roadmap saved successfully", error: null };

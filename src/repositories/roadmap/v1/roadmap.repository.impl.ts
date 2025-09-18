@@ -11,6 +11,7 @@ import Roadmap from "../../../schemas/roadmap";
 import responseSchema from "../../../utils/generated.roadmap.schema";
 import { NotFoundError, AccessDeniedError, DatabaseError, ExternalServiceError } from "../../../utils/errors";
 import DataOrError from "../../../utils/either";
+import { id } from "zod/dist/types/v4/locales";
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_KEY });
 
@@ -18,8 +19,8 @@ const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_KEY });
 class V1RoadmapRepository implements IRoadmapRepository {
   async getPrivateRoadmap(userId: string, roadmapId: string): Promise<DataOrError<IRoadmap>> {
     try {
-      const roadmap = await Roadmap.findById(roadmapId);
 
+      const roadmap = await Roadmap.findById(roadmapId);
       if (!roadmap) {
         return {
           data: null,
@@ -50,18 +51,29 @@ class V1RoadmapRepository implements IRoadmapRepository {
     userId: string,
     limit: number,
     skip: number
-  ): Promise<DataOrError<IRoadmap[]>> {
+  ): Promise<DataOrError<IRoadmapMetaData[]>> {
     try {
       const roadmaps = await Roadmap.find({ userId })
-        .select({
-          goals: 0 // remove the goals, just send meta data
-        })
         .limit(limit)
         .sort({ createdAt: -1 })
         .skip(skip)
         .exec();
+
+      // process roadmaps into roadmap meta data
+      const roadmapsMetaData: IRoadmapMetaData[] = roadmaps.map(r => {
+        return {
+          id: r._id.toString(),
+          title: r.title,
+          description: r.description,
+          goalsCount: r.goals.length,
+          progress: (r.goals.reduce((acc, goal) => {
+            const completedSubgoals = goal.subgoals.filter(sg => sg.status.completed).length;
+            return acc + (goal.subgoals.length ? (completedSubgoals / goal.subgoals.length) : 0);
+          }, 0) / (r.goals.length || 1) * 100).toFixed(2) // percentage
+        };
+      });
       return {
-        data: roadmaps,
+        data: roadmapsMetaData,
         error: null
       };
     } catch (error) {
@@ -79,11 +91,20 @@ class V1RoadmapRepository implements IRoadmapRepository {
     roadmap: IRoadmap
   ): Promise<DataOrError<string>> {
     try {
+      // Ensure all subgoals have a status field with default values
+      const processedGoals = roadmap.goals.map(goal => ({
+        ...goal,
+        subgoals: goal.subgoals.map(subgoal => ({
+          ...subgoal,
+          status: subgoal.status || { completed: false, completedAt: null }
+        }))
+      }));
+
       const savedRoadmap = await Roadmap.create({
         userId: userId,
         title: roadmap.title,
         description: roadmap.description,
-        goals: roadmap.goals,
+        goals: processedGoals,
       });
 
       await savedRoadmap.save();

@@ -18,7 +18,7 @@ class V1RoadmapController implements IRoadmapController {
       userId: z.string().min(1, "User ID is required."),
       roadmap: z.object({
         title: z.string().min(1, "Roadmap title is required").max(100),
-        description: z.string().min(10, "Description is required").max(200),
+        description: z.string().min(10, "Description is required").max(400),
         goals: z.array(z.any()).min(1, "Roadmap must have at least one goal"),
       }),
     });
@@ -43,7 +43,7 @@ class V1RoadmapController implements IRoadmapController {
       return;
     }
 
-    res.status(200).json({ message });
+    res.status(201).json({ message });
   };
 
   deleteRoadmap = async (req: Request, res: Response, next: NextFunction): Promise<void> => {

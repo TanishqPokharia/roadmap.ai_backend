@@ -20,7 +20,7 @@ const uploader = (0, multer_1.default)({
 });
 const router = (0, express_1.Router)();
 const controller = tsyringe_1.container.resolve("UserController");
-router.get("/validate", controller.validateCookie);
+router.get("/validate", check_token_1.default, controller.validateCookie);
 router.get("/logout", controller.logout);
 router.get("/details", check_token_1.default, controller.getUserDetails);
 router.post("/signup", controller.signUp);

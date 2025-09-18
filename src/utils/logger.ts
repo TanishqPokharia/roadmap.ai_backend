@@ -3,7 +3,7 @@ import pinoHttp from "pino-http";
 
 // Configure logger based on environment
 const logger = pino(
-  process.env.NODE_ENV === "production" || process.env.VERCEL
+  process.env.NODE_ENV === "prod" || process.env.VERCEL
     ? {
       // Production configuration - simple JSON output
       level: "info",
@@ -15,7 +15,9 @@ const logger = pino(
         options: {
           colorize: true,
           messageFormat: "{req.method} {req.url} - {res.statusCode} - {msg}",
+          ignore: "req.remoteAddress,req.remotePort,req.id,req.query,req.params",
         },
+        level: "debug",
       },
     }
 );

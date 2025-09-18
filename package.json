@@ -9,7 +9,7 @@
     "start": "nodemon dist/app.js",
     "ts-check": "tsc --project tsconfig.json",
     "add-build": "git add dist",
-    "dev": "tsc && node dist/app.js"
+    "dev": "tsc && nodemon dist/app.js"
   },
   "pre-commit": [
     "ts-check",

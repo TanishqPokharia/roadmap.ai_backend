@@ -35,7 +35,7 @@ let V1RoadmapController = class V1RoadmapController {
                 userId: v4_1.z.string().min(1, "User ID is required."),
                 roadmap: v4_1.z.object({
                     title: v4_1.z.string().min(1, "Roadmap title is required").max(100),
-                    description: v4_1.z.string().min(10, "Description is required").max(200),
+                    description: v4_1.z.string().min(10, "Description is required").max(400),
                     goals: v4_1.z.array(v4_1.z.any()).min(1, "Roadmap must have at least one goal"),
                 }),
             });
@@ -54,7 +54,7 @@ let V1RoadmapController = class V1RoadmapController {
                 next(error);
                 return;
             }
-            res.status(200).json({ message });
+            res.status(201).json({ message });
         });
         this.deleteRoadmap = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
             const { roadmapId } = req.params;

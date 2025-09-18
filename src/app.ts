@@ -16,8 +16,11 @@ import useragent from "express-useragent";
 import cookieParser from "cookie-parser";
 const app = express();
 
-// Enable CORS for all origins
-app.use(cors());
+// Enable CORS for all origins with credentials
+app.use(cors({
+  origin: true, // Allow all origins
+  credentials: true // Allow cookies to be sent
+}));
 
 app.use(express.json());
 app.use(cookieParser(process.env.COOKIE_SECRET));
@@ -41,12 +44,9 @@ mongoose
     logger.fatal("Failed to connect to MongoDB:", message);
   });
 
-// Only listen on port in development/local environment
-if (require.main === module) {
-  app.listen(3000, () => {
-    logger.info("Server is running on port 3000");
-  });
-}
+app.listen(3000, () => {
+  logger.info("Server is running on port 3000");
+});
 
 // Configure Cloudinary
 import { v2 as cloudinary } from "cloudinary";

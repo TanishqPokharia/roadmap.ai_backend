@@ -21,7 +21,7 @@ const errorHandler = (error: Error, req: Request, res: Response, next: NextFunct
 
     // Log unexpected errors with full details
     logger.error(error, "Unexpected error - sending 500 response");
-    res.status(500).json({ error: "Internal Server Error" });
+    res.status(500).json({ error: `${error.message}` });
 }
 
 export default errorHandler;

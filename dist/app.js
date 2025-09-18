@@ -18,8 +18,11 @@ const error_handler_1 = __importDefault(require("./middlewares/error.handler"));
 const express_useragent_1 = __importDefault(require("express-useragent"));
 const cookie_parser_1 = __importDefault(require("cookie-parser"));
 const app = (0, express_1.default)();
-// Enable CORS for all origins
-app.use((0, cors_1.default)());
+// Enable CORS for all origins with credentials
+app.use((0, cors_1.default)({
+    origin: true, // Allow all origins
+    credentials: true // Allow cookies to be sent
+}));
 app.use(express_1.default.json());
 app.use((0, cookie_parser_1.default)(process.env.COOKIE_SECRET));
 app.use(express_1.default.urlencoded({ extended: true }));
@@ -37,12 +40,9 @@ mongoose_1.default
     const message = error.message;
     logger_1.logger.fatal("Failed to connect to MongoDB:", message);
 });
-// Only listen on port in development/local environment
-if (require.main === module) {
-    app.listen(3000, () => {
-        logger_1.logger.info("Server is running on port 3000");
-    });
-}
+app.listen(3000, () => {
+    logger_1.logger.info("Server is running on port 3000");
+});
 // Configure Cloudinary
 const cloudinary_1 = require("cloudinary");
 cloudinary_1.v2.config({
