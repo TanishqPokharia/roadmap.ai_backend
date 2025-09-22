@@ -13,6 +13,10 @@ const postSchema = new mongoose.Schema<PostDocument>({
     type: Number,
     default: 0,
   },
+  bannerImage: {
+    type: String,
+    default: null
+  },
   views: {
     type: Number,
     default: 0
@@ -36,7 +40,11 @@ postSchema.virtual("author", {
 postSchema.set("toJSON", {
   virtuals: true,
   transform: (doc, ret) => {
+    // TODO: Change the processing in the repository to avoid depending on toJSON
     ret.id = ret._id;
+    ret.title = ret.roadmap.title;
+    ret.description = ret.roadmap.description;
+    delete ret.roadmap;
     delete ret._id;
     delete ret.authorId;
     return ret;

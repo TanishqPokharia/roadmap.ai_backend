@@ -11,7 +11,6 @@ import Roadmap from "../../../schemas/roadmap";
 import responseSchema from "../../../utils/generated.roadmap.schema";
 import { NotFoundError, AccessDeniedError, DatabaseError, ExternalServiceError } from "../../../utils/errors";
 import DataOrError from "../../../utils/either";
-import { id } from "zod/dist/types/v4/locales";
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_KEY });
 
@@ -65,11 +64,13 @@ class V1RoadmapRepository implements IRoadmapRepository {
           id: r._id.toString(),
           title: r.title,
           description: r.description,
+          isPosted: r.isPosted ?? false,
           goalsCount: r.goals.length,
-          progress: (r.goals.reduce((acc, goal) => {
+          subgoalsCount: r.goals.reduce((acc, goal) => acc + goal.subgoals.length, 0),
+          completedSubgoals: r.goals.reduce((acc, goal) => {
             const completedSubgoals = goal.subgoals.filter(sg => sg.status.completed).length;
-            return acc + (goal.subgoals.length ? (completedSubgoals / goal.subgoals.length) : 0);
-          }, 0) / (r.goals.length || 1) * 100).toFixed(2) // percentage
+            return acc + completedSubgoals;
+          }, 0)
         };
       });
       return {
@@ -147,18 +148,21 @@ class V1RoadmapRepository implements IRoadmapRepository {
         return { data: null, error: new NotFoundError("Roadmap not found") };
       }
 
-      const goal = roadmap.goals.find((g) => g._id.equals(goalId));
+      const goal = roadmap.goals.find((g) => g._id.toString() === goalId);
       if (!goal) {
         return { data: null, error: new NotFoundError("Goal not found") };
       }
-      const subgoal = goal.subgoals.find((sg) => sg._id.equals(subgoalId));
+      const subgoal = goal.subgoals.find((sg) => sg._id.toString() === subgoalId);
       if (!subgoal) {
         return { data: null, error: new NotFoundError("Subgoal not found") };
       }
       subgoal.status.completed = status;
       subgoal.status.completedAt = status ? new Date() : null;
+
+      // notify mongoose that the subdocument has been modified
       roadmap.markModified("goals");
       await roadmap.save();
+
       return { data: "Subgoal status updated successfully", error: null };
     } catch (error) {
       logger.error(error, "Error setting roadmap subgoal status:");

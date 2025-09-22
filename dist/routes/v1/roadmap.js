@@ -9,5 +9,5 @@ router.get("/generate", controller.generateRoadmap);
 router.get("/:roadmapId", controller.getPrivateRoadmap);
 router.post("/save", controller.saveRoadmap);
 router.delete("/delete/:roadmapId", controller.deleteRoadmap);
-router.patch("/:roadmapId/:subgoalId/:goalId", controller.setRoadmapSubgoalStatus);
+router.patch("/:roadmapId/:goalId/:subgoalId/:status", controller.setRoadmapSubgoalStatus);
 exports.default = router;

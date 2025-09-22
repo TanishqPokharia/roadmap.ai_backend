@@ -20,7 +20,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const user_1 = __importDefault(require("../../../schemas/user"));
 const create_access_token_1 = __importDefault(require("../../../utils/create.access.token"));
-const create_refresh_toke_1 = __importDefault(require("../../../utils/create.refresh.toke"));
+const create_refresh_token_1 = __importDefault(require("../../../utils/create.refresh.token"));
 const tsyringe_1 = require("tsyringe");
 const logger_1 = require("../../../utils/logger");
 const bcrypt_1 = __importDefault(require("bcrypt"));
@@ -57,7 +57,7 @@ let V1UserRepository = class V1UserRepository {
                 });
                 const savedUser = yield user.save();
                 const accessToken = (0, create_access_token_1.default)(savedUser._id.toString());
-                const refreshToken = (0, create_refresh_toke_1.default)(savedUser._id.toString());
+                const refreshToken = (0, create_refresh_token_1.default)(savedUser._id.toString());
                 return {
                     error: null,
                     data: {
@@ -93,7 +93,7 @@ let V1UserRepository = class V1UserRepository {
                     };
                 }
                 const accessToken = (0, create_access_token_1.default)(user._id.toString());
-                const refreshToken = (0, create_refresh_toke_1.default)(user._id.toString());
+                const refreshToken = (0, create_refresh_token_1.default)(user._id.toString());
                 return {
                     data: {
                         accessToken,
@@ -117,7 +117,7 @@ let V1UserRepository = class V1UserRepository {
                 const secret = process.env.REFRESH_TOKEN_SECRET;
                 const decoded = jsonwebtoken_1.default.verify(refreshToken, secret);
                 const accessToken = (0, create_access_token_1.default)(decoded.userId);
-                const newRefreshToken = (0, create_refresh_toke_1.default)(decoded.userId);
+                const newRefreshToken = (0, create_refresh_token_1.default)(decoded.userId);
                 return {
                     data: {
                         accessToken,
@@ -154,13 +154,13 @@ let V1UserRepository = class V1UserRepository {
                     cloudinary_1.v2.uploader
                         .upload_stream(options, (error, result) => {
                         if (error) {
-                            logger_1.logger.error(error, "Error uploading avatar to Cloudinary");
+                            logger_1.logger.error(error, "Error uploading avatar");
                             return reject(error);
                         }
                         else {
                             if (!result) {
-                                logger_1.logger.error("No result returned from Cloudinary upload");
-                                return reject(new Error("No result returned from Cloudinary upload"));
+                                logger_1.logger.error("No result returned from upload");
+                                return reject(new Error("No result returned from upload"));
                             }
                             return resolve(result);
                         }

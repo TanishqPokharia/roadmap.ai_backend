@@ -2,6 +2,8 @@ interface IRoadmapMetaData {
     id: string;
     title: string;
     description: string;
-    progress: string;
+    completedSubgoals: number;
     goalsCount: number;
+    subgoalsCount: number;
+    isPosted: boolean;
 }

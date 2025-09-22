@@ -115,27 +115,26 @@ let V1RoadmapController = class V1RoadmapController {
             res.status(200).json({ roadmap });
         });
         this.setRoadmapSubgoalStatus = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
-            const { roadmapId, subgoalId, goalId } = req.params;
-            if (!req.body) {
-                next(new errors_1.ValidationError("Request body is required."));
-                return;
-            }
-            const { status } = req.body;
+            const { roadmapId, subgoalId, goalId, status } = req.params;
             const setStatusSchema = v4_1.z.object({
-                status: v4_1.z.boolean().nonoptional("Status is required"),
+                status: v4_1.z.preprocess((val) => val === "true" || val === true, v4_1.z.boolean().nonoptional()),
                 roadmapId: v4_1.z.string().min(1, "Roadmap ID is required"),
                 subgoalId: v4_1.z.string().min(1, "Subgoal ID is required"),
+                goalId: v4_1.z.string().min(1, "Goal ID is required"),
             });
             const validatedStatus = setStatusSchema.safeParse({
                 status,
                 roadmapId,
                 subgoalId,
+                goalId,
             });
             if (!validatedStatus.success) {
                 next(new errors_1.ValidationError(v4_1.z.prettifyError(validatedStatus.error)));
                 return;
             }
-            const { data: message, error } = yield this.repo.setRoadmapSubgoalStatus(roadmapId, goalId, subgoalId, status);
+            const validatedData = validatedStatus.data;
+            console.log(validatedData);
+            const { data: message, error } = yield this.repo.setRoadmapSubgoalStatus(validatedData.roadmapId, validatedData.goalId, validatedData.subgoalId, validatedData.status);
             if (error) {
                 next(error);
                 return;

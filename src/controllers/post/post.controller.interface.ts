@@ -10,4 +10,5 @@ export default interface IPostController {
   getPostedRoadmap(req: Request, res: Response, next: NextFunction): Promise<void>;
   getUserPostsMetaData(req: Request, res: Response, next: NextFunction): Promise<void>;
   getUserPostRoadmap(req: Request, res: Response, next: NextFunction): Promise<void>;
+  getUserPostStats(req: Request, res: Response, next: NextFunction): Promise<void>;
 }

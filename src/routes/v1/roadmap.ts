@@ -12,7 +12,7 @@ router.get("/:roadmapId", controller.getPrivateRoadmap);
 router.post("/save", controller.saveRoadmap);
 router.delete("/delete/:roadmapId", controller.deleteRoadmap);
 router.patch(
-  "/:roadmapId/:subgoalId/:goalId",
+  "/:roadmapId/:goalId/:subgoalId/:status",
   controller.setRoadmapSubgoalStatus
 );
 

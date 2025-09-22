@@ -25,7 +25,44 @@ const logger_1 = require("../../../utils/logger");
 const user_1 = __importDefault(require("../../../schemas/user"));
 const views_1 = __importDefault(require("../../../schemas/views"));
 const errors_1 = require("../../../utils/errors");
+const cloudinary_1 = require("cloudinary");
+const roadmap_1 = __importDefault(require("../../../schemas/roadmap"));
 let V1PostRepository = class V1PostRepository {
+    getUserPostStats(userId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const stats = yield post_1.default.aggregate([
+                    { $match: { authorId: userId } },
+                    {
+                        $group: {
+                            _id: null,
+                            totalPosts: { $sum: 1 },
+                            totalLikes: { $sum: "$likes" },
+                            totalViews: { $sum: "$views" },
+                        },
+                    },
+                ]);
+                if (!stats || stats.length === 0) {
+                    return {
+                        data: {
+                            totalPosts: 0,
+                            totalLikes: 0,
+                            totalViews: 0,
+                        },
+                        error: null,
+                    };
+                }
+                return { data: stats[0], error: null };
+            }
+            catch (error) {
+                logger_1.logger.error(error, "Error getting user post stats");
+                return {
+                    data: null,
+                    error: new errors_1.DatabaseError("Failed to get user post stats"),
+                };
+            }
+        });
+    }
     getPostedRoadmap(postId) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
@@ -55,13 +92,12 @@ let V1PostRepository = class V1PostRepository {
                     createdAt: {
                         $gte: new Date(Date.now() - 1000 * 60 * 60 * 24 * 14),
                     },
-                }).select({
-                    roadmap: 0 // exclude the roadmap
                 })
                     .limit(limit)
                     .skip(skip)
                     .sort({ likes: -1 })
                     .exec();
+                console.log(posts);
                 return { data: posts, error: null };
             }
             catch (error) {
@@ -95,7 +131,7 @@ let V1PostRepository = class V1PostRepository {
             }
         });
     }
-    uploadPost(userId, roadmap) {
+    uploadPost(userId, roadmap, bannerImageBuffer) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const userInfo = yield user_1.default.findById(userId, "username email ", {
@@ -107,11 +143,43 @@ let V1PostRepository = class V1PostRepository {
                         error: new errors_1.NotFoundError("User not found"),
                     };
                 }
+                const options = {
+                    unique_filename: false,
+                    overwrite: true,
+                    public_id: userId,
+                    folder: "roadmap_ai/avatars",
+                    transformation: [
+                        { width: 200, height: 200, crop: "fill" },
+                        { quality: "auto", fetch_format: "auto" },
+                    ],
+                    resource_type: "image",
+                    use_filename: false,
+                };
+                const result = yield new Promise((resolve, reject) => {
+                    cloudinary_1.v2.uploader
+                        .upload_stream(options, (error, result) => {
+                        if (error) {
+                            logger_1.logger.error(error, "Error uploading avatar");
+                            return reject(error);
+                        }
+                        else {
+                            if (!result) {
+                                logger_1.logger.error("No result returned from upload");
+                                return reject(new Error("No result returned from upload"));
+                            }
+                            return resolve(result);
+                        }
+                    })
+                        .end(bannerImageBuffer);
+                });
                 const post = new post_1.default({
                     authorId: userId,
                     roadmap,
+                    bannerImage: result.secure_url
                 });
                 const savedPost = yield post.save();
+                // mark the roadmap as posted
+                yield roadmap_1.default.updateOne({ _id: roadmap.id }, { isPosted: true }).exec();
                 return { data: savedPost._id.toString(), error: null };
             }
             catch (error) {
@@ -193,9 +261,6 @@ let V1PostRepository = class V1PostRepository {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const posts = yield post_1.default.find({ authorId: userId })
-                    .select({
-                    roadmap: 0 // exclude the roadmap
-                })
                     .limit(limit)
                     .skip(skip)
                     .sort({ createdAt: -1 })

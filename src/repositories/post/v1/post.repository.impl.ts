@@ -9,9 +9,47 @@ import IPostRepository, { PostTime } from "../post.repository.interface";
 import User from "../../../schemas/user";
 import Views from "../../../schemas/views";
 import { NotFoundError, DatabaseError } from "../../../utils/errors";
+import {
+  v2 as cloudinary,
+  UploadApiOptions,
+  UploadApiResponse,
+} from "cloudinary";
+import Roadmap from "../../../schemas/roadmap";
 
 @injectable()
 class V1PostRepository implements IPostRepository {
+  async getUserPostStats(userId: string): Promise<DataOrError<IUserPostStats>> {
+    try {
+      const stats = await Post.aggregate([
+        { $match: { authorId: userId } },
+        {
+          $group: {
+            _id: null,
+            totalPosts: { $sum: 1 },
+            totalLikes: { $sum: "$likes" },
+            totalViews: { $sum: "$views" },
+          },
+        },
+      ]);
+      if (!stats || stats.length === 0) {
+        return {
+          data: {
+            totalPosts: 0,
+            totalLikes: 0,
+            totalViews: 0,
+          },
+          error: null,
+        };
+      }
+      return { data: stats[0], error: null };
+    } catch (error) {
+      logger.error(error, "Error getting user post stats");
+      return {
+        data: null,
+        error: new DatabaseError("Failed to get user post stats"),
+      };
+    }
+  }
   async getPostedRoadmap(postId: string): Promise<DataOrError<IRoadmap>> {
     try {
       const post = await Post.findById(postId);
@@ -38,17 +76,17 @@ class V1PostRepository implements IPostRepository {
     skip: number
   ): Promise<DataOrError<IPost[]>> {
     try {
-      const posts = await Post.find({
+      const posts: IPost[] = await Post.find({
         createdAt: {
           $gte: new Date(Date.now() - 1000 * 60 * 60 * 24 * 14),
         },
-      }).select({
-        roadmap: 0 // exclude the roadmap
       })
         .limit(limit)
         .skip(skip)
         .sort({ likes: -1 })
         .exec();
+
+      console.log(posts);
 
       return { data: posts, error: null };
     } catch (error) {
@@ -89,7 +127,8 @@ class V1PostRepository implements IPostRepository {
   }
   async uploadPost(
     userId: string,
-    roadmap: IRoadmap
+    roadmap: IRoadmap,
+    bannerImageBuffer: Buffer
   ): Promise<DataOrError<string>> {
     try {
       const userInfo = await User.findById(userId, "username email ", {
@@ -103,12 +142,50 @@ class V1PostRepository implements IPostRepository {
         };
       }
 
+      const options: UploadApiOptions = {
+        unique_filename: false,
+        overwrite: true,
+        public_id: userId,
+        folder: "roadmap_ai/avatars",
+        transformation: [
+          { width: 200, height: 200, crop: "fill" },
+          { quality: "auto", fetch_format: "auto" },
+        ],
+        resource_type: "image",
+        use_filename: false,
+      };
+
+      const result = await new Promise<UploadApiResponse>((resolve, reject) => {
+        cloudinary.uploader
+          .upload_stream(options, (error, result) => {
+            if (error) {
+              logger.error(error, "Error uploading avatar");
+              return reject(error);
+            } else {
+              if (!result) {
+                logger.error("No result returned from upload");
+                return reject(
+                  new Error("No result returned from upload")
+                );
+              }
+              return resolve(result!);
+            }
+          })
+          .end(bannerImageBuffer);
+      });
+
       const post = new Post({
         authorId: userId,
         roadmap,
+        bannerImage: result.secure_url
       });
 
       const savedPost = await post.save();
+
+      // mark the roadmap as posted
+
+      await Roadmap.updateOne({ _id: roadmap.id }, { isPosted: true }).exec();
+
       return { data: savedPost._id.toString(), error: null };
     } catch (error) {
       logger.error(error, "Error uploading post");
@@ -201,9 +278,6 @@ class V1PostRepository implements IPostRepository {
   ): Promise<DataOrError<IPost[]>> {
     try {
       const posts = await Post.find({ authorId: userId })
-        .select({
-          roadmap: 0 // exclude the roadmap
-        })
         .limit(limit)
         .skip(skip)
         .sort({ createdAt: -1 })

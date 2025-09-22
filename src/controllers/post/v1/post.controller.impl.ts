@@ -8,6 +8,17 @@ import { ValidationError } from "../../../utils/errors";
 @injectable()
 class V1PostController implements IPostController {
   constructor(@inject("PostRepository") private repo: IPostRepository) { }
+
+
+  getUserPostStats = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    const userId = req.token;
+    const { data, error } = await this.repo.getUserPostStats(userId.toString());
+    if (error) {
+      next(error);
+      return;
+    }
+    res.status(200).json({ ...data });
+  }
   getPopularPosts = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const { limit, skip } = req.query;
     const popularPostsSchema = z.object({
@@ -68,11 +79,18 @@ class V1PostController implements IPostController {
   };
   uploadPost = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const userId = req.token;
-    if (!req.body) {
-      next(new ValidationError("Request body is required"));
+    if (!req.file) {
+      next(new ValidationError("Banner Image is required"));
       return;
     }
-    const { roadmap } = req.body;
+
+    const roadmap = JSON.parse(req.body.roadmap); // multipart form data is not parsed automatically by express
+    const bannerImageBuffer = req.file.buffer;
+
+    if (!bannerImageBuffer) {
+      next(new ValidationError("Could not process banner image"));
+      return;
+    }
 
     // validate params
     const post = z.object({
@@ -82,11 +100,13 @@ class V1PostController implements IPostController {
         title: z.string().min(1, "Roadmap title is required").max(100),
         goals: z.array(z.any()).min(1, "Roadmap must have at least one goal"),
       }),
+      bannerImage: z.instanceof(Buffer, { error: "Banner image is required" }),
     });
 
     const validation = post.safeParse({
       userId,
       roadmap,
+      bannerImage: bannerImageBuffer
     });
 
     if (!validation.success) {
@@ -98,7 +118,8 @@ class V1PostController implements IPostController {
 
     const { data, error } = await this.repo.uploadPost(
       validated.userId,
-      roadmap
+      roadmap,
+      bannerImageBuffer
     );
     if (error) {
       next(error);
@@ -233,8 +254,8 @@ class V1PostController implements IPostController {
     const { limit, skip } = req.query;
     const getUserPostedRoadmapsMetaDataSchema = z.object({
       userId: z.string().nonempty("User ID is required."),
-      limit: z.preprocess((val) => Number(val), z.int().nonnegative().optional()),
-      skip: z.preprocess((val) => Number(val), z.int().nonnegative().optional()),
+      limit: z.preprocess((val) => val ? 10 : Number(val), z.int().nonnegative()),
+      skip: z.preprocess((val) => val ? 0 : Number(val), z.int().nonnegative()),
     });
     const validateInputs = getUserPostedRoadmapsMetaDataSchema.safeParse({
       userId,
@@ -248,8 +269,8 @@ class V1PostController implements IPostController {
     const validated = validateInputs.data;
     const { data: posts, error } = await this.repo.getUserPostsMetaData(
       validated.userId,
-      validated.limit ?? 10,
-      validated.skip ?? 0
+      validated.limit,
+      validated.skip
     );
     if (error) {
       next(error);

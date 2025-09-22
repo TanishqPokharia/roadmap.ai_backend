@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import IUserController from "../user.controller.interface";
 import IUserRepository from "../../../repositories/user/user.repository.interface";
 import { inject, injectable } from "tsyringe";
-import { file, z } from "zod/v4";
+import { z } from "zod/v4";
 import { logger } from "../../../utils/logger";
 import { ValidationError } from "../../../utils/errors";
 
@@ -158,8 +158,6 @@ class V1UserController implements IUserController {
       next(new ValidationError("Could not process avatar file path"));
       return;
     }
-
-    logger.info("AVATAR : " + avatar);
 
     const { data, error } = await this.repo.uploadAvatar(
       userId.toString(),

@@ -9,7 +9,7 @@ export default interface IPostRepository {
     limit: number,
     skip: number
   ): Promise<DataOrError<IPost[]>>;
-  uploadPost(userId: string, roadmap: IRoadmap): Promise<DataOrError<string>>;
+  uploadPost(userId: string, roadmap: IRoadmap, bannerImage: Buffer): Promise<DataOrError<string>>;
   getPostsByTime(
     time: PostTime,
     limit: number,
@@ -45,6 +45,8 @@ export default interface IPostRepository {
    * Increases the view count of post if previously not viewed by a user
    */
   toggleView(userId: string, postId: string): Promise<DataOrError<void>>;
+
+  getUserPostStats(userId: string): Promise<DataOrError<IUserPostStats>>;
 
 }
 

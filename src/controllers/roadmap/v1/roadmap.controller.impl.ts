@@ -125,24 +125,19 @@ class V1RoadmapController implements IRoadmapController {
     res: Response,
     next: NextFunction
   ): Promise<void> => {
-    const { roadmapId, subgoalId, goalId } = req.params;
-
-    if (!req.body) {
-      next(new ValidationError("Request body is required."));
-      return;
-    }
-
-    const { status } = req.body;
+    const { roadmapId, subgoalId, goalId, status } = req.params;
     const setStatusSchema = z.object({
-      status: z.boolean().nonoptional("Status is required"),
+      status: z.preprocess((val) => val === "true" || val === true, z.boolean().nonoptional()),
       roadmapId: z.string().min(1, "Roadmap ID is required"),
       subgoalId: z.string().min(1, "Subgoal ID is required"),
+      goalId: z.string().min(1, "Goal ID is required"),
     });
 
     const validatedStatus = setStatusSchema.safeParse({
       status,
       roadmapId,
       subgoalId,
+      goalId,
     });
 
     if (!validatedStatus.success) {
@@ -150,11 +145,15 @@ class V1RoadmapController implements IRoadmapController {
       return;
     }
 
+    const validatedData = validatedStatus.data;
+
+    console.log(validatedData);
+
     const { data: message, error } = await this.repo.setRoadmapSubgoalStatus(
-      roadmapId,
-      goalId,
-      subgoalId,
-      status
+      validatedData.roadmapId,
+      validatedData.goalId,
+      validatedData.subgoalId,
+      validatedData.status
     );
 
     if (error) {

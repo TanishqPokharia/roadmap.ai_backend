@@ -27,6 +27,15 @@ const errors_1 = require("../../../utils/errors");
 let V1PostController = class V1PostController {
     constructor(repo) {
         this.repo = repo;
+        this.getUserPostStats = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
+            const userId = req.token;
+            const { data, error } = yield this.repo.getUserPostStats(userId.toString());
+            if (error) {
+                next(error);
+                return;
+            }
+            res.status(200).json(Object.assign({}, data));
+        });
         this.getPopularPosts = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
             const { limit, skip } = req.query;
             const popularPostsSchema = v4_1.z.object({
@@ -76,11 +85,16 @@ let V1PostController = class V1PostController {
         });
         this.uploadPost = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
             const userId = req.token;
-            if (!req.body) {
-                next(new errors_1.ValidationError("Request body is required"));
+            if (!req.file) {
+                next(new errors_1.ValidationError("Banner Image is required"));
                 return;
             }
-            const { roadmap } = req.body;
+            const roadmap = JSON.parse(req.body.roadmap); // multipart form data is not parsed automatically by express
+            const bannerImageBuffer = req.file.buffer;
+            if (!bannerImageBuffer) {
+                next(new errors_1.ValidationError("Could not process banner image"));
+                return;
+            }
             // validate params
             const post = v4_1.z.object({
                 userId: v4_1.z.string().min(1, "User ID is required"),
@@ -89,17 +103,19 @@ let V1PostController = class V1PostController {
                     title: v4_1.z.string().min(1, "Roadmap title is required").max(100),
                     goals: v4_1.z.array(v4_1.z.any()).min(1, "Roadmap must have at least one goal"),
                 }),
+                bannerImage: v4_1.z.instanceof(Buffer, { error: "Banner image is required" }),
             });
             const validation = post.safeParse({
                 userId,
                 roadmap,
+                bannerImage: bannerImageBuffer
             });
             if (!validation.success) {
                 next(new errors_1.ValidationError(v4_1.z.prettifyError(validation.error)));
                 return;
             }
             const validated = validation.data;
-            const { data, error } = yield this.repo.uploadPost(validated.userId, roadmap);
+            const { data, error } = yield this.repo.uploadPost(validated.userId, roadmap, bannerImageBuffer);
             if (error) {
                 next(error);
                 return;
@@ -197,13 +213,12 @@ let V1PostController = class V1PostController {
             res.status(200).json({ roadmap });
         });
         this.getUserPostsMetaData = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
-            var _a, _b;
             const userId = req.token;
             const { limit, skip } = req.query;
             const getUserPostedRoadmapsMetaDataSchema = v4_1.z.object({
                 userId: v4_1.z.string().nonempty("User ID is required."),
-                limit: v4_1.z.preprocess((val) => Number(val), v4_1.z.int().nonnegative().optional()),
-                skip: v4_1.z.preprocess((val) => Number(val), v4_1.z.int().nonnegative().optional()),
+                limit: v4_1.z.preprocess((val) => val ? 10 : Number(val), v4_1.z.int().nonnegative()),
+                skip: v4_1.z.preprocess((val) => val ? 0 : Number(val), v4_1.z.int().nonnegative()),
             });
             const validateInputs = getUserPostedRoadmapsMetaDataSchema.safeParse({
                 userId,
@@ -215,7 +230,7 @@ let V1PostController = class V1PostController {
                 return;
             }
             const validated = validateInputs.data;
-            const { data: posts, error } = yield this.repo.getUserPostsMetaData(validated.userId, (_a = validated.limit) !== null && _a !== void 0 ? _a : 10, (_b = validated.skip) !== null && _b !== void 0 ? _b : 0);
+            const { data: posts, error } = yield this.repo.getUserPostsMetaData(validated.userId, validated.limit, validated.skip);
             if (error) {
                 next(error);
                 return;

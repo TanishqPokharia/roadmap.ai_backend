@@ -3,7 +3,7 @@ import User from "../../../schemas/user";
 import DataOrError from "../../../utils/either";
 import IUserRepository from "../user.repository.interface";
 import createAccessToken from "../../../utils/create.access.token";
-import createRefreshToken from "../../../utils/create.refresh.toke";
+import createRefreshToken from "../../../utils/create.refresh.token";
 import { injectable } from "tsyringe";
 import { logger } from "../../../utils/logger";
 import bcrypt from "bcrypt";
@@ -153,13 +153,13 @@ class V1UserRepository implements IUserRepository {
         cloudinary.uploader
           .upload_stream(options, (error, result) => {
             if (error) {
-              logger.error(error, "Error uploading avatar to Cloudinary");
+              logger.error(error, "Error uploading avatar");
               return reject(error);
             } else {
               if (!result) {
-                logger.error("No result returned from Cloudinary upload");
+                logger.error("No result returned from upload");
                 return reject(
-                  new Error("No result returned from Cloudinary upload")
+                  new Error("No result returned from upload")
                 );
               }
               return resolve(result!);
