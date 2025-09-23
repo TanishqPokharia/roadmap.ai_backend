@@ -154,6 +154,7 @@ let V1UserController = class V1UserController {
                 next(new errors_1.ValidationError("Could not process avatar file path"));
                 return;
             }
+            logger_1.logger.info("AVATAR : " + avatar);
             const { data, error } = yield this.repo.uploadAvatar(userId.toString(), avatar);
             if (error) {
                 next(error);

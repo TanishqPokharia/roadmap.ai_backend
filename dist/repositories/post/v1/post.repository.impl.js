@@ -261,6 +261,7 @@ let V1PostRepository = class V1PostRepository {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const posts = yield post_1.default.find({ authorId: userId })
+                    .select("-roadmap.goals")
                     .limit(limit)
                     .skip(skip)
                     .sort({ createdAt: -1 })

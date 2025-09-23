@@ -278,6 +278,7 @@ class V1PostRepository implements IPostRepository {
   ): Promise<DataOrError<IPost[]>> {
     try {
       const posts = await Post.find({ authorId: userId })
+        .select("-roadmap.goals")
         .limit(limit)
         .skip(skip)
         .sort({ createdAt: -1 })

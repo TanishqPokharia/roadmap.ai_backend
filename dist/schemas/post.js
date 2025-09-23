@@ -39,13 +39,11 @@ postSchema.virtual("author", {
 postSchema.set("toJSON", {
     virtuals: true,
     transform: (doc, ret) => {
-        // TODO: Change the processing in the repository to avoid depending on toJSON
         ret.id = ret._id;
         ret.title = ret.roadmap.title;
         ret.description = ret.roadmap.description;
         delete ret.roadmap;
         delete ret._id;
-        delete ret.authorId;
         return ret;
     }
 });
