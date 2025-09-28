@@ -23,6 +23,7 @@ app.set("trust proxy", 1); // Trust first proxy
 app.use((0, cors_1.default)({
     origin: true, // Allow all origins
     credentials: true, // Allow cookies to be sent
+    exposedHeaders: ['Set-Cookie'] // Expose Set-Cookie header to the client
 }));
 app.use(express_1.default.json());
 app.use((0, cookie_parser_1.default)(process.env.COOKIE_SECRET));
