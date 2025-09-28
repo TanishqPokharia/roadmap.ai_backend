@@ -21,7 +21,7 @@ const app = (0, express_1.default)();
 app.set("trust proxy", 1); // Trust first proxy
 // Enable CORS for all origins with credentials
 app.use((0, cors_1.default)({
-    origin: "*", // Allow all origins
+    origin: process.env.ORIGIN, // Allow all origins
     credentials: true, // Allow cookies to be sent
     exposedHeaders: ['Set-Cookie'] // Expose Set-Cookie header to the client
 }));
