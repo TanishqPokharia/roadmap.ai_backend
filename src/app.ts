@@ -20,7 +20,7 @@ app.set("trust proxy", 1); // Trust first proxy
 
 // Enable CORS for all origins with credentials
 app.use(cors({
-  origin: true, // Allow all origins
+  origin: "*", // Allow all origins
   credentials: true, // Allow cookies to be sent
   exposedHeaders: ['Set-Cookie'] // Expose Set-Cookie header to the client
 }));
