@@ -27,12 +27,15 @@ const views_1 = __importDefault(require("../../../schemas/views"));
 const errors_1 = require("../../../utils/errors");
 const cloudinary_1 = require("cloudinary");
 const roadmap_1 = __importDefault(require("../../../schemas/roadmap"));
+const mongoose_1 = __importDefault(require("mongoose"));
 let V1PostRepository = class V1PostRepository {
     getUserPostStats(userId) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
+                // Convert string userId to ObjectId for proper matching
+                const userObjectId = new mongoose_1.default.Types.ObjectId(userId);
                 const stats = yield post_1.default.aggregate([
-                    { $match: { authorId: userId } },
+                    { $match: { authorId: userObjectId } },
                     {
                         $group: {
                             _id: null,
@@ -63,18 +66,31 @@ let V1PostRepository = class V1PostRepository {
             }
         });
     }
-    getPostedRoadmap(postId) {
+    getPostDetails(userId, postId) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const post = yield post_1.default.findById(postId);
+                // find the post
+                const post = yield post_1.default.findById(postId).populate("author");
                 if (!post) {
                     return {
                         data: null,
                         error: new errors_1.NotFoundError("Post not found")
                     };
                 }
-                const roadmap = post.roadmap;
-                return { data: roadmap, error: null };
+                // check if post has already been saved by the user
+                const savedRoadmapId = yield roadmap_1.default.exists({
+                    userId,
+                    postId
+                });
+                const isSaved = savedRoadmapId !== null;
+                // preserve the roadmap from being removed during toJson
+                const fullPost = post.toObject();
+                delete fullPost._id;
+                const data = {
+                    post: fullPost,
+                    isSaved
+                };
+                return { data, error: null };
             }
             catch (error) {
                 logger_1.logger.error(error, "Error getting roadmap from the post");
@@ -93,6 +109,7 @@ let V1PostRepository = class V1PostRepository {
                         $gte: new Date(Date.now() - 1000 * 60 * 60 * 24 * 14),
                     },
                 })
+                    .populate("author")
                     .limit(limit)
                     .skip(skip)
                     .sort({ likes: -1 })
@@ -115,10 +132,10 @@ let V1PostRepository = class V1PostRepository {
                 const posts = yield post_1.default.find({
                     "roadmap.title": { $regex: topic, $options: "i" },
                 })
+                    .populate("author")
                     .sort({ likes: -1 })
                     .limit(limit)
                     .skip(skip)
-                    .populate("author", "username email avatar id")
                     .exec();
                 return { data: posts, error: null };
             }
@@ -179,7 +196,7 @@ let V1PostRepository = class V1PostRepository {
                 });
                 const savedPost = yield post.save();
                 // mark the roadmap as posted
-                yield roadmap_1.default.updateOne({ _id: roadmap.id }, { isPosted: true }).exec();
+                yield roadmap_1.default.updateOne({ _id: roadmap.id }, { postId: savedPost._id }).exec();
                 return { data: savedPost._id.toString(), error: null };
             }
             catch (error) {
@@ -205,6 +222,8 @@ let V1PostRepository = class V1PostRepository {
                         $gte: new Date(Date.now() - 1000 * 60 * 60 * 24 * timeMap[time]),
                     },
                 })
+                    .populate("author", "username email avatar")
+                    .sort({ createdAt: -1 })
                     .limit(limit)
                     .skip(skip)
                     .exec();
@@ -261,11 +280,10 @@ let V1PostRepository = class V1PostRepository {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const posts = yield post_1.default.find({ authorId: userId })
-                    .select("-roadmap.goals")
                     .limit(limit)
                     .skip(skip)
                     .sort({ createdAt: -1 })
-                    .populate("author", "username email avatar")
+                    .populate("author")
                     .exec();
                 return { data: posts, error: null };
             }

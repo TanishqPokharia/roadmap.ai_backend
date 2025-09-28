@@ -5,5 +5,5 @@ interface IRoadmapMetaData {
     completedSubgoals: number;
     goalsCount: number;
     subgoalsCount: number;
-    isPosted: boolean;
+    postId: string | null;
 }

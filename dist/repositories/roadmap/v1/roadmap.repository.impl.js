@@ -66,12 +66,11 @@ let V1RoadmapRepository = class V1RoadmapRepository {
                     .exec();
                 // process roadmaps into roadmap meta data
                 const roadmapsMetaData = roadmaps.map(r => {
-                    var _a;
                     return {
                         id: r._id.toString(),
                         title: r.title,
                         description: r.description,
-                        isPosted: (_a = r.isPosted) !== null && _a !== void 0 ? _a : false,
+                        postId: r.postId ? r.postId.toString() : null,
                         goalsCount: r.goals.length,
                         subgoalsCount: r.goals.reduce((acc, goal) => acc + goal.subgoals.length, 0),
                         completedSubgoals: r.goals.reduce((acc, goal) => {

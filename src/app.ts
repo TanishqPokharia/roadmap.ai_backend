@@ -19,7 +19,7 @@ const app = express();
 // Enable CORS for all origins with credentials
 app.use(cors({
   origin: true, // Allow all origins
-  credentials: true // Allow cookies to be sent
+  credentials: true, // Allow cookies to be sent
 }));
 
 app.use(express.json());

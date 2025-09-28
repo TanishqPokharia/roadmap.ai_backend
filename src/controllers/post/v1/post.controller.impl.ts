@@ -9,7 +9,6 @@ import { ValidationError } from "../../../utils/errors";
 class V1PostController implements IPostController {
   constructor(@inject("PostRepository") private repo: IPostRepository) { }
 
-
   getUserPostStats = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const userId = req.token;
     const { data, error } = await this.repo.getUserPostStats(userId.toString());
@@ -17,8 +16,11 @@ class V1PostController implements IPostController {
       next(error);
       return;
     }
-    res.status(200).json({ ...data });
+    console.log(data);
+    res.status(200).json(data);
   }
+
+
   getPopularPosts = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const { limit, skip } = req.query;
     const popularPostsSchema = z.object({
@@ -45,16 +47,16 @@ class V1PostController implements IPostController {
     res.status(200).json({ posts });
   };
   getPostsByTitle = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    const { title, limit, skip } = req.query;
+    const { q, limit, skip } = req.query;
     // validate params
     const postTitleSchema = z.object({
-      title: z.string().min(1, "Proper title is required").max(100),
+      q: z.string().min(1, "Proper title is required").max(100),
       limit: z.preprocess((val) => Number(val), z.number().int().nonnegative()),
       skip: z.preprocess((val) => Number(val), z.number().int().nonnegative()),
     });
 
     const validation = postTitleSchema.safeParse({
-      title,
+      q,
       limit,
       skip,
     });
@@ -66,7 +68,7 @@ class V1PostController implements IPostController {
 
     const validated = validation.data;
     const { data: posts, error } = await this.repo.getPostsByTitle(
-      validated.title,
+      validated.q,
       validated.limit,
       validated.skip
     );
@@ -229,24 +231,23 @@ class V1PostController implements IPostController {
 
 
 
-  getPostedRoadmap = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  getPostDetails = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const postId = req.params.postId;
     const userId = req.token as string;
     if (!postId) {
       next(new ValidationError("post id is required"));
       return;
     }
-    const { data: roadmap, error } = await this.repo.getPostedRoadmap(postId);
+    const { data, error } = await this.repo.getPostDetails(userId, postId);
     if (error) {
       next(error);
       return;
     }
-
     // if getting roadmap is successfull, set a job to toggle view status
     setImmediate(() => {
       this.repo.toggleView(userId, postId);
     });
-    res.status(200).json({ roadmap });
+    res.status(200).json(data);
   }
 
   getUserPostsMetaData = async (req: Request, res: Response, next: NextFunction): Promise<void> => {

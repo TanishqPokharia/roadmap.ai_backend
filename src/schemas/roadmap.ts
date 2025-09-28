@@ -10,9 +10,9 @@ export const roadmapSchema = new mongoose.Schema<RoadmapDocument>({
     ref: "User",
     required: true,
   },
-  isPosted: {
-    type: Boolean,
-    default: false,
+  postId: {
+    type: mongoose.Schema.Types.ObjectId,
+    default: null,
   },
   title: {
     type: String,

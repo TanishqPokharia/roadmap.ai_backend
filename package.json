@@ -6,7 +6,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "eslint . --ext .ts,.js",
     "build": "rimraf dist && tsc",
-    "start": "nodemon dist/app.js",
+    "start": "node dist/app.js",
+    "ci-install": " npm ci --omit=dev --prefer-offline --no-audit --loglevel=error --no-fund",
     "ts-check": "tsc --project tsconfig.json",
     "add-build": "git add dist",
     "dev": "tsc && nodemon dist/app.js"
@@ -32,7 +33,6 @@
     "jsonwebtoken": "^9.0.2",
     "mongodb": "^6.16.0",
     "mongoose": "^8.15.1",
-    "morgan": "^1.10.0",
     "multer": "^2.0.1",
     "pino": "^9.7.0",
     "pino-http": "^10.4.0",

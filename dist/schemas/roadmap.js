@@ -12,9 +12,9 @@ exports.roadmapSchema = new mongoose_1.default.Schema({
         ref: "User",
         required: true,
     },
-    isPosted: {
-        type: Boolean,
-        default: false,
+    postId: {
+        type: mongoose_1.default.Schema.Types.ObjectId,
+        default: null,
     },
     title: {
         type: String,

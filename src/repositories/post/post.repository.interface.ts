@@ -1,4 +1,5 @@
 import IPost from "../../models/post";
+import { IPostDetails } from "../../models/post.details";
 import IRoadmap from "../../models/roadmap";
 import DataOrError from "../../utils/either";
 
@@ -40,7 +41,7 @@ export default interface IPostRepository {
   /**
    * Fetch the roadmap of the selected post
    */
-  getPostedRoadmap(postId: string): Promise<DataOrError<IRoadmap>>
+  getPostDetails(userId: string, postId: string): Promise<DataOrError<IPostDetails>>
   /**
    * Increases the view count of post if previously not viewed by a user
    */

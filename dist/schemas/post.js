@@ -35,6 +35,9 @@ postSchema.virtual("author", {
     localField: "authorId",
     foreignField: "_id",
     justOne: true,
+    options: {
+        select: "username email avatar",
+    }
 });
 postSchema.set("toJSON", {
     virtuals: true,
@@ -47,5 +50,6 @@ postSchema.set("toJSON", {
         return ret;
     }
 });
+postSchema.set("toObject", { virtuals: true });
 const Post = mongoose_1.default.model("Post", postSchema);
 exports.default = Post;

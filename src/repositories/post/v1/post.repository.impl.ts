@@ -15,13 +15,18 @@ import {
   UploadApiResponse,
 } from "cloudinary";
 import Roadmap from "../../../schemas/roadmap";
+import mongoose from "mongoose";
+import { IPostDetails } from "../../../models/post.details";
 
 @injectable()
 class V1PostRepository implements IPostRepository {
   async getUserPostStats(userId: string): Promise<DataOrError<IUserPostStats>> {
     try {
+      // Convert string userId to ObjectId for proper matching
+      const userObjectId = new mongoose.Types.ObjectId(userId);
+
       const stats = await Post.aggregate([
-        { $match: { authorId: userId } },
+        { $match: { authorId: userObjectId } },
         {
           $group: {
             _id: null,
@@ -50,9 +55,11 @@ class V1PostRepository implements IPostRepository {
       };
     }
   }
-  async getPostedRoadmap(postId: string): Promise<DataOrError<IRoadmap>> {
+  async getPostDetails(userId: string, postId: string): Promise<DataOrError<IPostDetails>> {
     try {
-      const post = await Post.findById(postId);
+
+      // find the post
+      const post = await Post.findById(postId).populate("author");
       if (!post) {
         return {
           data: null,
@@ -60,8 +67,23 @@ class V1PostRepository implements IPostRepository {
         };
       }
 
-      const roadmap = post.roadmap;
-      return { data: roadmap, error: null };
+      // check if post has already been saved by the user
+      const savedRoadmapId = await Roadmap.exists({
+        userId,
+        postId
+      });
+
+      const isSaved = savedRoadmapId !== null;
+
+      // preserve the roadmap from being removed during toJson
+
+      const fullPost = post.toObject();
+      delete fullPost._id;
+      const data: IPostDetails = {
+        post: fullPost,
+        isSaved
+      };
+      return { data, error: null };
 
     } catch (error) {
       logger.error(error, "Error getting roadmap from the post");
@@ -81,6 +103,7 @@ class V1PostRepository implements IPostRepository {
           $gte: new Date(Date.now() - 1000 * 60 * 60 * 24 * 14),
         },
       })
+        .populate("author")
         .limit(limit)
         .skip(skip)
         .sort({ likes: -1 })
@@ -108,10 +131,10 @@ class V1PostRepository implements IPostRepository {
       const posts = await Post.find({
         "roadmap.title": { $regex: topic, $options: "i" },
       })
+        .populate("author")
         .sort({ likes: -1 })
         .limit(limit)
         .skip(skip)
-        .populate("author", "username email avatar id")
         .exec();
 
       return { data: posts, error: null };
@@ -184,7 +207,7 @@ class V1PostRepository implements IPostRepository {
 
       // mark the roadmap as posted
 
-      await Roadmap.updateOne({ _id: roadmap.id }, { isPosted: true }).exec();
+      await Roadmap.updateOne({ _id: roadmap.id }, { postId: savedPost._id }).exec();
 
       return { data: savedPost._id.toString(), error: null };
     } catch (error) {
@@ -213,6 +236,9 @@ class V1PostRepository implements IPostRepository {
           $gte: new Date(Date.now() - 1000 * 60 * 60 * 24 * timeMap[time]),
         },
       })
+
+        .populate("author", "username email avatar")
+        .sort({ createdAt: -1 })
         .limit(limit)
         .skip(skip)
         .exec();
@@ -278,11 +304,10 @@ class V1PostRepository implements IPostRepository {
   ): Promise<DataOrError<IPost[]>> {
     try {
       const posts = await Post.find({ authorId: userId })
-        .select("-roadmap.goals")
         .limit(limit)
         .skip(skip)
         .sort({ createdAt: -1 })
-        .populate("author", "username email avatar")
+        .populate("author")
         .exec();
 
       return { data: posts, error: null };

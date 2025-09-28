@@ -50,10 +50,20 @@ const userSchema = new mongoose.Schema<UserDocument>({
 userSchema.set("toJSON", {
   virtuals: true,
   transform(doc, ret, options) {
+    ret.id = ret._id;
     delete ret._id;
     delete ret.password;
     return ret;
   },
+});
+
+userSchema.set("toObject", {
+  virtuals: true, transform(doc, ret, options) {
+    ret.id = ret._id;
+    delete ret._id;
+    delete ret.password;
+    return ret;
+  }
 });
 
 userSchema.pre(

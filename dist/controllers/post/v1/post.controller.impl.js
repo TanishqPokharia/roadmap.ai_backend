@@ -34,7 +34,8 @@ let V1PostController = class V1PostController {
                 next(error);
                 return;
             }
-            res.status(200).json(Object.assign({}, data));
+            console.log(data);
+            res.status(200).json(data);
         });
         this.getPopularPosts = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
             const { limit, skip } = req.query;
@@ -59,15 +60,15 @@ let V1PostController = class V1PostController {
             res.status(200).json({ posts });
         });
         this.getPostsByTitle = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
-            const { title, limit, skip } = req.query;
+            const { q, limit, skip } = req.query;
             // validate params
             const postTitleSchema = v4_1.z.object({
-                title: v4_1.z.string().min(1, "Proper title is required").max(100),
+                q: v4_1.z.string().min(1, "Proper title is required").max(100),
                 limit: v4_1.z.preprocess((val) => Number(val), v4_1.z.number().int().nonnegative()),
                 skip: v4_1.z.preprocess((val) => Number(val), v4_1.z.number().int().nonnegative()),
             });
             const validation = postTitleSchema.safeParse({
-                title,
+                q,
                 limit,
                 skip,
             });
@@ -76,7 +77,7 @@ let V1PostController = class V1PostController {
                 return;
             }
             const validated = validation.data;
-            const { data: posts, error } = yield this.repo.getPostsByTitle(validated.title, validated.limit, validated.skip);
+            const { data: posts, error } = yield this.repo.getPostsByTitle(validated.q, validated.limit, validated.skip);
             if (error) {
                 next(error);
                 return;
@@ -194,14 +195,14 @@ let V1PostController = class V1PostController {
             }
             res.status(200).json({ posts });
         });
-        this.getPostedRoadmap = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
+        this.getPostDetails = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
             const postId = req.params.postId;
             const userId = req.token;
             if (!postId) {
                 next(new errors_1.ValidationError("post id is required"));
                 return;
             }
-            const { data: roadmap, error } = yield this.repo.getPostedRoadmap(postId);
+            const { data, error } = yield this.repo.getPostDetails(userId, postId);
             if (error) {
                 next(error);
                 return;
@@ -210,7 +211,7 @@ let V1PostController = class V1PostController {
             setImmediate(() => {
                 this.repo.toggleView(userId, postId);
             });
-            res.status(200).json({ roadmap });
+            res.status(200).json(data);
         });
         this.getUserPostsMetaData = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
             const userId = req.token;

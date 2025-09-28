@@ -6,7 +6,7 @@ interface IRoadmap {
   id: string;
   title: string;
   description: string;
-  isPosted?: boolean;
+  postId: Types.ObjectId | null;
   goals: IRoadmapGoal[];
   userId: Types.ObjectId;
   status: {

@@ -64,7 +64,7 @@ class V1RoadmapRepository implements IRoadmapRepository {
           id: r._id.toString(),
           title: r.title,
           description: r.description,
-          isPosted: r.isPosted ?? false,
+          postId: r.postId ? r.postId.toString() : null,
           goalsCount: r.goals.length,
           subgoalsCount: r.goals.reduce((acc, goal) => acc + goal.subgoals.length, 0),
           completedSubgoals: r.goals.reduce((acc, goal) => {
