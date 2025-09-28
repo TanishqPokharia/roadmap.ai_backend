@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import IUserController from "../user.controller.interface";
 import IUserRepository from "../../../repositories/user/user.repository.interface";
 import { inject, injectable } from "tsyringe";
-import { file, z } from "zod/v4";
+import { z } from "zod/v4";
 import { logger } from "../../../utils/logger";
 import { ValidationError } from "../../../utils/errors";
 
@@ -10,7 +10,7 @@ import { ValidationError } from "../../../utils/errors";
 class V1UserController implements IUserController {
   constructor(@inject("UserRepository") private repo: IUserRepository) { }
   logout = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    res.clearCookie("tokens", { httpOnly: true, sameSite: "none", signed: true, path: "/" }).status(200).json({ message: "User logged out successfully" });
+    res.clearCookie("tokens", { httpOnly: true, sameSite: "none", signed: true, path: "/", secure: false }).status(200).json({ message: "User logged out successfully" });
   }
   validateCookie = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const userId = req.token;
@@ -57,7 +57,7 @@ class V1UserController implements IUserController {
     if (req.useragent?.isAndroid || req.useragent?.isiPhone || req.useragent?.isiPad || req.useragent?.isMobile) {
       res.status(201).json({ accessToken, refreshToken });
     } else {
-      res.status(201).cookie("tokens", { accessToken, refreshToken }, { httpOnly: true, sameSite: "none", signed: true, path: "/" }).json({ message: "User registered successfully" });
+      res.status(201).cookie("tokens", { accessToken, refreshToken }, { httpOnly: true, sameSite: "none", signed: true, secure: false, path: "/" }).json({ message: "User registered successfully" });
     }
 
 
@@ -93,7 +93,7 @@ class V1UserController implements IUserController {
     if (req.useragent?.isAndroid || req.useragent?.isiPhone || req.useragent?.isiPad || req.useragent?.isMobile) {
       res.status(200).json({ accessToken, refreshToken });
     } else {
-      res.status(200).cookie("tokens", { accessToken, refreshToken }, { httpOnly: true, sameSite: "none", signed: true, path: "/" }).json({ message: "User logged in successfully" });
+      res.status(200).cookie("tokens", { accessToken, refreshToken }, { httpOnly: true, sameSite: "none", signed: true, secure: false, path: "/" }).json({ message: "User logged in successfully" });
     }
   };
 
@@ -139,7 +139,7 @@ class V1UserController implements IUserController {
     if (req.useragent?.isAndroid || req.useragent?.isiPhone || req.useragent?.isiPad || req.useragent?.isMobile) {
       res.status(200).json({ accessToken, refreshToken: newRefreshToken });
     } else {
-      res.status(200).cookie("tokens", { accessToken, refreshToken: newRefreshToken }, { httpOnly: true, sameSite: "none", signed: true, path: "/" }).json({ message: "Token refreshed successfully" });
+      res.status(200).cookie("tokens", { accessToken, refreshToken: newRefreshToken }, { httpOnly: true, sameSite: "none", signed: true, secure: false, path: "/" }).json({ message: "Token refreshed successfully" });
     }
   };
 
