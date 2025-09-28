@@ -18,6 +18,7 @@ const error_handler_1 = __importDefault(require("./middlewares/error.handler"));
 const express_useragent_1 = __importDefault(require("express-useragent"));
 const cookie_parser_1 = __importDefault(require("cookie-parser"));
 const app = (0, express_1.default)();
+app.set("trust proxy", 1); // Trust first proxy
 // Enable CORS for all origins with credentials
 app.use((0, cors_1.default)({
     origin: true, // Allow all origins
