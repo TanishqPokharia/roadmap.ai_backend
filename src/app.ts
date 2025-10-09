@@ -52,7 +52,6 @@ app.listen(3000, () => {
 });
 
 
-// cm1
 
 // Configure Cloudinary
 import { v2 as cloudinary } from "cloudinary";
