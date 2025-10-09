@@ -1,6 +1,6 @@
 ---
 - name: Deploy roadmap AI backend
-  hosts: roadmap_ai_backend
+  hosts: all
   become: yes
   roles:
     - deploy
