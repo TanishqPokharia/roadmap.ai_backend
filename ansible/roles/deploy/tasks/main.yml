@@ -32,6 +32,14 @@
 # Run the Docker container
 - name: Run Docker container
   ansible.builtin.shell: |
-    docker run -d --name {{ container_name }} -p {{ container_port }}:{{ container_port }} {{ dockerhub_username }}/{{ docker_image_name }}
+    # Remove old container if it exists
+    docker rm -f {{ container_name }} || true
+    
+    docker run -d \
+      --name {{ container_name }} \
+      -p {{ container_port }}:{{ container_port }} \
+      --env-file ~/roadmap_ai_backend/.env \
+      {{ dockerhub_username }}/{{ docker_image_name }}
   become: yes
+
 
