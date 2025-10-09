@@ -57,6 +57,4 @@ cloudinary.config({
   secure: true,
 });
 
-// cm1
-
 export default app;
