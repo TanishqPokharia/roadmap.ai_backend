@@ -25,21 +25,15 @@
 
 # Stop and remove existing container if it exists
 - name: Stop and remove existing container if it exists
-  ansible.builtin.shell: |
-    docker ps -a -q --filter "name={{ container_name }}" | grep -q . && docker stop {{ container_name }} && docker rm {{ container_name }} || true
+  ansible.builtin.shell: docker rm -f roadmap_ai_backend || true
   become: yes
 
 # Run the Docker container
 - name: Run Docker container
   ansible.builtin.shell: |
-    # Remove old container if it exists
-    docker rm -f {{ container_name }} || true
-    
     docker run -d \
-      --name {{ container_name }} \
+      --name roadmap_ai_backend \
       -p {{ container_port }}:{{ container_port }} \
-      --env-file ~/roadmap_ai_backend/.env \
+      --env-file /home/.env \
       {{ dockerhub_username }}/{{ docker_image_name }}
   become: yes
-
-
