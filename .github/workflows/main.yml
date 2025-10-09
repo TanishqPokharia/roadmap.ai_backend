@@ -41,7 +41,8 @@ jobs:
           chmod 600 private_key.pem
 
           ansible-playbook \
-            -i "${{ secrets.EC2_HOST }}," \
-            --private-key devops-keypair.pem \
-            -u ${{ secrets.EC2_USER }} \
-            ansible/playbook.yml
+          -i "${{ secrets.EC2_HOST }}," \
+          -u ${{ secrets.EC2_USER }} \
+          --private-key private_key.pem \
+          -e "ansible_python_interpreter=/usr/bin/python3" \
+          ansible/playbook.yml
