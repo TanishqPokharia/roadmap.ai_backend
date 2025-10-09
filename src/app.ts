@@ -20,7 +20,7 @@ app.set("trust proxy", 1); // Trust first proxy
 
 // Enable CORS for all origins with credentials
 app.use(cors({
-  origin: process.env.ORIGIN, // Allow all origins
+  origin: [process.env.ORIGIN,"https://main.d20iqmdu4e490z.amplifyapp.com"], // Allow all origins
   credentials: true, // Allow cookies to be sent
   exposedHeaders: ['Set-Cookie'] // Expose Set-Cookie header to the client
 }));
