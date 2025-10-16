@@ -34,6 +34,6 @@
     docker run -d \
       --name roadmap_ai_backend \
       -p {{ container_port }}:{{ container_port }} \
-      --env-file /home/.env \
+      --env-file /home/ec2-user/.env \
       {{ dockerhub_username }}/{{ docker_image_name }}
   become: yes
