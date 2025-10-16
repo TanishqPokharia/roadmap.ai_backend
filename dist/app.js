@@ -45,6 +45,7 @@ mongoose_1.default
 app.listen(3000, () => {
     logger_1.logger.info("Server is running on port 3000");
 });
+// cmd1
 // Configure Cloudinary
 const cloudinary_1 = require("cloudinary");
 cloudinary_1.v2.config({

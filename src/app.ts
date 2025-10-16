@@ -51,7 +51,7 @@ app.listen(3000, () => {
   logger.info("Server is running on port 3000");
 });
 
-
+// cmd1
 
 // Configure Cloudinary
 import { v2 as cloudinary } from "cloudinary";
