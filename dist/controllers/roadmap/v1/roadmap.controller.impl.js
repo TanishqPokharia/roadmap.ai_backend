@@ -57,6 +57,7 @@ let V1RoadmapController = class V1RoadmapController {
             res.status(200).json({ message: "Roadmap deleted successfully." });
         };
         this.getPrivateRoadmapsMetaData = async (req, res, next) => {
+            var _a, _b;
             const userId = req.token;
             const { limit, skip } = req.query;
             const getRoadmapsMetaDataSchema = v4_1.z.object({
@@ -74,7 +75,7 @@ let V1RoadmapController = class V1RoadmapController {
                 return;
             }
             const validated = validateInputs.data;
-            const { data: roadmaps, error } = await this.repo.getPrivateRoadmapsMetaData(validated.userId, validated.limit ?? 10, validated.skip ?? 0);
+            const { data: roadmaps, error } = await this.repo.getPrivateRoadmapsMetaData(validated.userId, (_a = validated.limit) !== null && _a !== void 0 ? _a : 10, (_b = validated.skip) !== null && _b !== void 0 ? _b : 0);
             if (error) {
                 next(error);
                 return;

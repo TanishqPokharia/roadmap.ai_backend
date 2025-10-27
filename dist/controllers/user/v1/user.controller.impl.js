@@ -31,6 +31,7 @@ let V1UserController = class V1UserController {
             res.status(200).json({ message: 'Validated' });
         };
         this.signUp = async (req, res, next) => {
+            var _a, _b, _c, _d;
             const { username, email, password } = req.body;
             const signUpScehma = v4_1.z.object({
                 username: v4_1.z.string().min(8, "Min. 8 length username is required").max(20),
@@ -55,7 +56,7 @@ let V1UserController = class V1UserController {
                 return;
             }
             const { accessToken, refreshToken } = tokens;
-            if (req.useragent?.isAndroid || req.useragent?.isiPhone || req.useragent?.isiPad || req.useragent?.isMobile) {
+            if (((_a = req.useragent) === null || _a === void 0 ? void 0 : _a.isAndroid) || ((_b = req.useragent) === null || _b === void 0 ? void 0 : _b.isiPhone) || ((_c = req.useragent) === null || _c === void 0 ? void 0 : _c.isiPad) || ((_d = req.useragent) === null || _d === void 0 ? void 0 : _d.isMobile)) {
                 res.status(201).json({ accessToken, refreshToken });
             }
             else {
@@ -63,6 +64,7 @@ let V1UserController = class V1UserController {
             }
         };
         this.login = async (req, res, next) => {
+            var _a, _b, _c, _d;
             const { email, password } = req.body;
             const loginSchema = v4_1.z.object({
                 email: v4_1.z.email("Invalid email format"),
@@ -85,7 +87,7 @@ let V1UserController = class V1UserController {
                 return;
             }
             const { accessToken, refreshToken } = tokens;
-            if (req.useragent?.isAndroid || req.useragent?.isiPhone || req.useragent?.isiPad || req.useragent?.isMobile) {
+            if (((_a = req.useragent) === null || _a === void 0 ? void 0 : _a.isAndroid) || ((_b = req.useragent) === null || _b === void 0 ? void 0 : _b.isiPhone) || ((_c = req.useragent) === null || _c === void 0 ? void 0 : _c.isiPad) || ((_d = req.useragent) === null || _d === void 0 ? void 0 : _d.isMobile)) {
                 res.status(200).json({ accessToken, refreshToken });
             }
             else {
@@ -93,12 +95,13 @@ let V1UserController = class V1UserController {
             }
         };
         this.refresh = async (req, res, next) => {
+            var _a, _b, _c, _d, _e, _f, _g, _h;
             if (!req.body) {
                 next(new errors_1.ValidationError("Request body is required"));
                 return;
             }
             let refreshToken;
-            if (req.useragent?.isAndroid || req.useragent?.isiPhone || req.useragent?.isiPad || req.useragent?.isMobile) {
+            if (((_a = req.useragent) === null || _a === void 0 ? void 0 : _a.isAndroid) || ((_b = req.useragent) === null || _b === void 0 ? void 0 : _b.isiPhone) || ((_c = req.useragent) === null || _c === void 0 ? void 0 : _c.isiPad) || ((_d = req.useragent) === null || _d === void 0 ? void 0 : _d.isMobile)) {
                 refreshToken = req.body.refreshToken;
             }
             else {
@@ -123,7 +126,7 @@ let V1UserController = class V1UserController {
                 return;
             }
             const { accessToken, refreshToken: newRefreshToken } = tokens;
-            if (req.useragent?.isAndroid || req.useragent?.isiPhone || req.useragent?.isiPad || req.useragent?.isMobile) {
+            if (((_e = req.useragent) === null || _e === void 0 ? void 0 : _e.isAndroid) || ((_f = req.useragent) === null || _f === void 0 ? void 0 : _f.isiPhone) || ((_g = req.useragent) === null || _g === void 0 ? void 0 : _g.isiPad) || ((_h = req.useragent) === null || _h === void 0 ? void 0 : _h.isMobile)) {
                 res.status(200).json({ accessToken, refreshToken: newRefreshToken });
             }
             else {

@@ -33,15 +33,6 @@ app.use("/api/v1", index_1.default);
 app.use(error_handler_1.default);
 // Connect to MongoDB
 require("./mongodb");
-// mongoose
-//   .connect(`${process.env.DB_URL}`)
-//   .then((result) => {
-//     logger.info("Connected to MongoDB successfully");
-//   })
-//   .catch((error) => {
-//     const message = (error as Error).message;
-//     logger.fatal("Failed to connect to MongoDB:", message);
-//   });
 app.listen(3000, () => {
     logger_1.logger.info("Server is running on port 3000");
 });

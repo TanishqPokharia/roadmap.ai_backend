@@ -6,7 +6,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const logger_1 = require("../utils/logger");
 const checkToken = async (req, res, next) => {
-    if (req.useragent?.isAndroid || req.useragent?.isiPhone || req.useragent?.isiPad || req.useragent?.isMobile) {
+    var _a, _b, _c, _d;
+    if (((_a = req.useragent) === null || _a === void 0 ? void 0 : _a.isAndroid) || ((_b = req.useragent) === null || _b === void 0 ? void 0 : _b.isiPhone) || ((_c = req.useragent) === null || _c === void 0 ? void 0 : _c.isiPad) || ((_d = req.useragent) === null || _d === void 0 ? void 0 : _d.isMobile)) {
         mobileHandler(req, res, next);
         return;
     }
@@ -44,8 +45,9 @@ const webHandler = (req, res, next) => {
     }
 };
 const mobileHandler = (req, res, next) => {
+    var _a;
     try {
-        const auth = req.headers.authorization?.split(" ");
+        const auth = (_a = req.headers.authorization) === null || _a === void 0 ? void 0 : _a.split(" ");
         if (!auth || auth.at(0) !== "Bearer" || !auth.at(1)) {
             res.status(401).json({ error: "Unauthorized" });
             return;

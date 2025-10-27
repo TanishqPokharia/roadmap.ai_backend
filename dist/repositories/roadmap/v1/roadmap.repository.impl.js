@@ -83,13 +83,7 @@ let V1RoadmapRepository = class V1RoadmapRepository {
     async saveRoadmap(userId, roadmap) {
         try {
             // Ensure all subgoals have a status field with default values
-            const processedGoals = roadmap.goals.map(goal => ({
-                ...goal,
-                subgoals: goal.subgoals.map(subgoal => ({
-                    ...subgoal,
-                    status: subgoal.status || { completed: false, completedAt: null }
-                }))
-            }));
+            const processedGoals = roadmap.goals.map(goal => (Object.assign(Object.assign({}, goal), { subgoals: goal.subgoals.map(subgoal => (Object.assign(Object.assign({}, subgoal), { status: subgoal.status || { completed: false, completedAt: null } }))) })));
             const savedRoadmap = await roadmap_1.default.create({
                 userId: userId,
                 title: roadmap.title,

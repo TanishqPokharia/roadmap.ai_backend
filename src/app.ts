@@ -9,7 +9,6 @@ registerDependencies();
 import express from "express";
 import cors from "cors";
 import v1Router from "./routes/v1/index";
-import mongoose from "mongoose";
 import { httpLogger, logger } from "./utils/logger";
 import errorHandler from "./middlewares/error.handler";
 import useragent from "express-useragent";
@@ -39,15 +38,7 @@ app.use(errorHandler);
 
 // Connect to MongoDB
 import "./mongodb";
-// mongoose
-//   .connect(`${process.env.DB_URL}`)
-//   .then((result) => {
-//     logger.info("Connected to MongoDB successfully");
-//   })
-//   .catch((error) => {
-//     const message = (error as Error).message;
-//     logger.fatal("Failed to connect to MongoDB:", message);
-//   });
+
 
 app.listen(3000, () => {
   logger.info("Server is running on port 3000");
