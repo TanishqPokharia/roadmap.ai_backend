@@ -11,15 +11,6 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 const tsyringe_1 = require("tsyringe");
 const v4_1 = require("zod/v4");
@@ -27,17 +18,17 @@ const errors_1 = require("../../../utils/errors");
 let V1PostController = class V1PostController {
     constructor(repo) {
         this.repo = repo;
-        this.getUserPostStats = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
+        this.getUserPostStats = async (req, res, next) => {
             const userId = req.token;
-            const { data, error } = yield this.repo.getUserPostStats(userId.toString());
+            const { data, error } = await this.repo.getUserPostStats(userId.toString());
             if (error) {
                 next(error);
                 return;
             }
             console.log(data);
             res.status(200).json(data);
-        });
-        this.getPopularPosts = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
+        };
+        this.getPopularPosts = async (req, res, next) => {
             const { limit, skip } = req.query;
             const popularPostsSchema = v4_1.z.object({
                 limit: v4_1.z.preprocess((val) => Number(val), v4_1.z.number().int().nonnegative()),
@@ -52,14 +43,14 @@ let V1PostController = class V1PostController {
                 return;
             }
             const validated = validation.data;
-            const { data: posts, error } = yield this.repo.getPopularPosts(validated.limit, validated.skip);
+            const { data: posts, error } = await this.repo.getPopularPosts(validated.limit, validated.skip);
             if (error) {
                 next(error);
                 return;
             }
             res.status(200).json({ posts });
-        });
-        this.getPostsByTitle = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
+        };
+        this.getPostsByTitle = async (req, res, next) => {
             const { q, limit, skip } = req.query;
             // validate params
             const postTitleSchema = v4_1.z.object({
@@ -77,14 +68,14 @@ let V1PostController = class V1PostController {
                 return;
             }
             const validated = validation.data;
-            const { data: posts, error } = yield this.repo.getPostsByTitle(validated.q, validated.limit, validated.skip);
+            const { data: posts, error } = await this.repo.getPostsByTitle(validated.q, validated.limit, validated.skip);
             if (error) {
                 next(error);
                 return;
             }
             res.status(200).json({ posts });
-        });
-        this.uploadPost = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
+        };
+        this.uploadPost = async (req, res, next) => {
             const userId = req.token;
             if (!req.file) {
                 next(new errors_1.ValidationError("Banner Image is required"));
@@ -116,14 +107,14 @@ let V1PostController = class V1PostController {
                 return;
             }
             const validated = validation.data;
-            const { data, error } = yield this.repo.uploadPost(validated.userId, roadmap, bannerImageBuffer);
+            const { data, error } = await this.repo.uploadPost(validated.userId, roadmap, bannerImageBuffer);
             if (error) {
                 next(error);
                 return;
             }
             res.status(201).json({ post: data });
-        });
-        this.getPostsByTime = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
+        };
+        this.getPostsByTime = async (req, res, next) => {
             const { time, limit, skip } = req.query;
             // validate params
             const postTimeSchema = v4_1.z.object({
@@ -141,14 +132,14 @@ let V1PostController = class V1PostController {
                 return;
             }
             const validated = validation.data;
-            const { data: posts, error } = yield this.repo.getPostsByTime(validated.time, validated.limit, validated.skip);
+            const { data: posts, error } = await this.repo.getPostsByTime(validated.time, validated.limit, validated.skip);
             if (error) {
                 next(error);
                 return;
             }
             res.status(200).json({ posts });
-        });
-        this.togglePostLike = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
+        };
+        this.togglePostLike = async (req, res, next) => {
             const userId = req.token;
             const postId = req.params.postId;
             // validate params
@@ -162,14 +153,14 @@ let V1PostController = class V1PostController {
                 return;
             }
             const validated = validation.data;
-            const { data, error } = yield this.repo.togglePostLike(validated.userId, validated.postId);
+            const { data, error } = await this.repo.togglePostLike(validated.userId, validated.postId);
             if (error) {
                 next(error);
                 return;
             }
             res.status(200).json({ message: data });
-        });
-        this.getPostsByAuthor = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
+        };
+        this.getPostsByAuthor = async (req, res, next) => {
             const authorId = req.params.authorId;
             const { limit, skip } = req.query;
             // validate params
@@ -188,21 +179,21 @@ let V1PostController = class V1PostController {
                 return;
             }
             const validated = validation.data;
-            const { data: posts, error } = yield this.repo.getPostsByAuthor(validated.authorId, validated.limit, validated.skip);
+            const { data: posts, error } = await this.repo.getPostsByAuthor(validated.authorId, validated.limit, validated.skip);
             if (error) {
                 next(error);
                 return;
             }
             res.status(200).json({ posts });
-        });
-        this.getPostDetails = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
+        };
+        this.getPostDetails = async (req, res, next) => {
             const postId = req.params.postId;
             const userId = req.token;
             if (!postId) {
                 next(new errors_1.ValidationError("post id is required"));
                 return;
             }
-            const { data, error } = yield this.repo.getPostDetails(userId, postId);
+            const { data, error } = await this.repo.getPostDetails(userId, postId);
             if (error) {
                 next(error);
                 return;
@@ -212,8 +203,8 @@ let V1PostController = class V1PostController {
                 this.repo.toggleView(userId, postId);
             });
             res.status(200).json(data);
-        });
-        this.getUserPostsMetaData = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
+        };
+        this.getUserPostsMetaData = async (req, res, next) => {
             const userId = req.token;
             const { limit, skip } = req.query;
             const getUserPostedRoadmapsMetaDataSchema = v4_1.z.object({
@@ -231,27 +222,27 @@ let V1PostController = class V1PostController {
                 return;
             }
             const validated = validateInputs.data;
-            const { data: posts, error } = yield this.repo.getUserPostsMetaData(validated.userId, validated.limit, validated.skip);
+            const { data: posts, error } = await this.repo.getUserPostsMetaData(validated.userId, validated.limit, validated.skip);
             if (error) {
                 next(error);
                 return;
             }
             res.status(200).json({ posts });
-        });
-        this.getUserPostRoadmap = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
+        };
+        this.getUserPostRoadmap = async (req, res, next) => {
             const userId = req.token;
             const postId = req.params.postId;
             if (!postId) {
                 next(new errors_1.ValidationError("post id is required"));
                 return;
             }
-            const { data: roadmap, error } = yield this.repo.getUserPostRoadmap(userId, postId);
+            const { data: roadmap, error } = await this.repo.getUserPostRoadmap(userId, postId);
             if (error) {
                 next(error);
                 return;
             }
             res.status(200).json({ roadmap });
-        });
+        };
     }
 };
 V1PostController = __decorate([

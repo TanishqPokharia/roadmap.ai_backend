@@ -36,16 +36,18 @@ app.use("/api/v1", v1Router);
 
 app.use(errorHandler);
 
+
 // Connect to MongoDB
-mongoose
-  .connect(`${process.env.DB_URL}`)
-  .then((result) => {
-    logger.info("Connected to MongoDB successfully");
-  })
-  .catch((error) => {
-    const message = (error as Error).message;
-    logger.fatal("Failed to connect to MongoDB:", message);
-  });
+import "./mongodb";
+// mongoose
+//   .connect(`${process.env.DB_URL}`)
+//   .then((result) => {
+//     logger.info("Connected to MongoDB successfully");
+//   })
+//   .catch((error) => {
+//     const message = (error as Error).message;
+//     logger.fatal("Failed to connect to MongoDB:", message);
+//   });
 
 app.listen(3000, () => {
   logger.info("Server is running on port 3000");

@@ -12,7 +12,6 @@ const register_dependencies_1 = require("./utils/register.dependencies");
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
 const index_1 = __importDefault(require("./routes/v1/index"));
-const mongoose_1 = __importDefault(require("mongoose"));
 const logger_1 = require("./utils/logger");
 const error_handler_1 = __importDefault(require("./middlewares/error.handler"));
 const express_useragent_1 = __importDefault(require("express-useragent"));
@@ -33,15 +32,16 @@ app.use(express_useragent_1.default.express());
 app.use("/api/v1", index_1.default);
 app.use(error_handler_1.default);
 // Connect to MongoDB
-mongoose_1.default
-    .connect(`${process.env.DB_URL}`)
-    .then((result) => {
-    logger_1.logger.info("Connected to MongoDB successfully");
-})
-    .catch((error) => {
-    const message = error.message;
-    logger_1.logger.fatal("Failed to connect to MongoDB:", message);
-});
+require("./mongodb");
+// mongoose
+//   .connect(`${process.env.DB_URL}`)
+//   .then((result) => {
+//     logger.info("Connected to MongoDB successfully");
+//   })
+//   .catch((error) => {
+//     const message = (error as Error).message;
+//     logger.fatal("Failed to connect to MongoDB:", message);
+//   });
 app.listen(3000, () => {
     logger_1.logger.info("Server is running on port 3000");
 });

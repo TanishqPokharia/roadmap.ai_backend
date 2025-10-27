@@ -11,15 +11,6 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 const tsyringe_1 = require("tsyringe");
 const logger_1 = require("../../../utils/logger");
@@ -28,7 +19,7 @@ const errors_1 = require("../../../utils/errors");
 let V1RoadmapController = class V1RoadmapController {
     constructor(repo) {
         this.repo = repo;
-        this.saveRoadmap = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
+        this.saveRoadmap = async (req, res, next) => {
             const userId = req.token;
             const { roadmap } = req.body;
             const saveRoadmapSchema = v4_1.z.object({
@@ -49,24 +40,23 @@ let V1RoadmapController = class V1RoadmapController {
                 return;
             }
             const validated = validatedRoadmap.data;
-            const { data: message, error } = yield this.repo.saveRoadmap(validated.userId, roadmap);
+            const { data: message, error } = await this.repo.saveRoadmap(validated.userId, roadmap);
             if (error) {
                 next(error);
                 return;
             }
             res.status(201).json({ message });
-        });
-        this.deleteRoadmap = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
+        };
+        this.deleteRoadmap = async (req, res, next) => {
             const { roadmapId } = req.params;
-            const { data, error } = yield this.repo.deleteRoadmap(roadmapId);
+            const { data, error } = await this.repo.deleteRoadmap(roadmapId);
             if (error) {
                 next(error);
                 return;
             }
             res.status(200).json({ message: "Roadmap deleted successfully." });
-        });
-        this.getPrivateRoadmapsMetaData = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
-            var _a, _b;
+        };
+        this.getPrivateRoadmapsMetaData = async (req, res, next) => {
             const userId = req.token;
             const { limit, skip } = req.query;
             const getRoadmapsMetaDataSchema = v4_1.z.object({
@@ -84,14 +74,14 @@ let V1RoadmapController = class V1RoadmapController {
                 return;
             }
             const validated = validateInputs.data;
-            const { data: roadmaps, error } = yield this.repo.getPrivateRoadmapsMetaData(validated.userId, (_a = validated.limit) !== null && _a !== void 0 ? _a : 10, (_b = validated.skip) !== null && _b !== void 0 ? _b : 0);
+            const { data: roadmaps, error } = await this.repo.getPrivateRoadmapsMetaData(validated.userId, validated.limit ?? 10, validated.skip ?? 0);
             if (error) {
                 next(error);
                 return;
             }
             res.status(200).json({ roadmaps });
-        });
-        this.getPrivateRoadmap = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
+        };
+        this.getPrivateRoadmap = async (req, res, next) => {
             const userId = req.token;
             const roadmapId = req.params.roadmapId;
             const getPrivateRoadmapSchema = v4_1.z.object({
@@ -107,14 +97,14 @@ let V1RoadmapController = class V1RoadmapController {
                 return;
             }
             const validatedData = validateInputs.data;
-            const { data: roadmap, error } = yield this.repo.getPrivateRoadmap(validatedData.userId, validatedData.roadmapId);
+            const { data: roadmap, error } = await this.repo.getPrivateRoadmap(validatedData.userId, validatedData.roadmapId);
             if (error) {
                 next(error);
                 return;
             }
             res.status(200).json({ roadmap });
-        });
-        this.setRoadmapSubgoalStatus = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
+        };
+        this.setRoadmapSubgoalStatus = async (req, res, next) => {
             const { roadmapId, subgoalId, goalId, status } = req.params;
             const setStatusSchema = v4_1.z.object({
                 status: v4_1.z.preprocess((val) => val === "true" || val === true, v4_1.z.boolean().nonoptional()),
@@ -134,27 +124,27 @@ let V1RoadmapController = class V1RoadmapController {
             }
             const validatedData = validatedStatus.data;
             console.log(validatedData);
-            const { data: message, error } = yield this.repo.setRoadmapSubgoalStatus(validatedData.roadmapId, validatedData.goalId, validatedData.subgoalId, validatedData.status);
+            const { data: message, error } = await this.repo.setRoadmapSubgoalStatus(validatedData.roadmapId, validatedData.goalId, validatedData.subgoalId, validatedData.status);
             if (error) {
                 next(error);
                 return;
             }
             res.status(200).json({ message });
-        });
-        this.generateRoadmap = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
+        };
+        this.generateRoadmap = async (req, res, next) => {
             logger_1.logger.info("Generating roadmap...");
             const { topic } = req.query;
             if (typeof topic !== "string" || topic.trim() === "") {
                 next(new errors_1.ValidationError("Topic is required and must be a non-empty string."));
                 return;
             }
-            const { data: roadmap, error } = yield this.repo.generateRoadmap(topic);
+            const { data: roadmap, error } = await this.repo.generateRoadmap(topic);
             if (error) {
                 next(error);
                 return;
             }
             res.status(200).json(roadmap);
-        });
+        };
     }
 };
 V1RoadmapController = __decorate([
