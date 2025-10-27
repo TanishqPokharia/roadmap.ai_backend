@@ -20,7 +20,7 @@ let V1UserController = class V1UserController {
     constructor(repo) {
         this.repo = repo;
         this.logout = async (req, res, next) => {
-            res.clearCookie("tokens", { httpOnly: true, sameSite: "lax", signed: true, secure: true, path: "/" }).status(200).json({ message: "User logged out successfully" });
+            res.clearCookie("tokens", { httpOnly: true, sameSite: "none", signed: true, secure: true, path: "/" }).status(200).json({ message: "User logged out successfully" });
         };
         this.validateCookie = async (req, res, next) => {
             const userId = req.token;
@@ -91,7 +91,7 @@ let V1UserController = class V1UserController {
                 res.status(200).json({ accessToken, refreshToken });
             }
             else {
-                res.status(200).cookie("tokens", { accessToken, refreshToken }, { httpOnly: true, sameSite: "lax", signed: true, secure: true, path: "/" }).json({ message: "User logged in successfully" });
+                res.status(200).cookie("tokens", { accessToken, refreshToken }, { httpOnly: true, sameSite: "none", signed: true, secure: true, path: "/" }).json({ message: "User logged in successfully" });
             }
         };
         this.refresh = async (req, res, next) => {
@@ -130,7 +130,7 @@ let V1UserController = class V1UserController {
                 res.status(200).json({ accessToken, refreshToken: newRefreshToken });
             }
             else {
-                res.status(200).cookie("tokens", { accessToken, refreshToken: newRefreshToken }, { httpOnly: true, sameSite: "lax", signed: true, secure: true, path: "/" }).json({ message: "Token refreshed successfully" });
+                res.status(200).cookie("tokens", { accessToken, refreshToken: newRefreshToken }, { httpOnly: true, sameSite: "none", signed: true, secure: true, path: "/" }).json({ message: "Token refreshed successfully" });
             }
         };
         this.uploadAvatar = async (req, res, next) => {
