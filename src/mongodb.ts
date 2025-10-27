@@ -1,4 +1,3 @@
-
 import { attachDatabasePool } from "@vercel/functions";
 import mongoose, { ConnectOptions } from "mongoose";
 import { logger } from "./utils/logger";
