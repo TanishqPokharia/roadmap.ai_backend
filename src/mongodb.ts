@@ -9,7 +9,7 @@ const options: ConnectOptions = {
 };
 
 
-const connection = mongoose.connect(process.env.MONGODB_URI, options).then((client) => {
+const connection = mongoose.connect(process.env.DB_URL, options).then((client) => {
   attachDatabasePool(client.connection.getClient());
   logger.info("Connected to db");
   return client;
