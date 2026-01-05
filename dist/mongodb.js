@@ -11,7 +11,7 @@ const options = {
     maxIdleTimeMS: 5000,
     maxPoolSize: 10,
 };
-const connection = mongoose_1.default.connect(process.env.DB_URL, options).then((client) => {
+const connection = mongoose_1.default.connect(process.env.MONGODB_URI, options).then((client) => {
     (0, functions_1.attachDatabasePool)(client.connection.getClient());
     logger_1.logger.info("Connected to db");
     return client;
