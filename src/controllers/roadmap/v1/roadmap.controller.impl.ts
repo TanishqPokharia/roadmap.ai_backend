@@ -1,7 +1,5 @@
 import { NextFunction, Request, Response } from "express";
 import { inject, injectable } from "tsyringe";
-
-import { logger } from "../../../utils/logger";
 import IRoadmapController from "../roadmap.controller.interface";
 import IRoadmapRepository from "../../../repositories/roadmap/roadmap.repository.interface";
 import { z } from "zod/v4";
@@ -10,6 +8,42 @@ import { ValidationError } from "../../../utils/errors";
 @injectable()
 class V1RoadmapController implements IRoadmapController {
   constructor(@inject("RoadmapRepository") private repo: IRoadmapRepository) { }
+  savePostRoadmap = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    const userId = req.token;
+    const { roadmap, postId } = req.body;
+    const savePostRoadmapSchema = z.object({
+      userId: z.string().min(1, "User ID is required"),
+      roadmap: z.object({
+        title: z.string().min(1, "Roadmap title is required").max(100),
+        description: z.string().min(10, "Description is required").max(400),
+        goals: z.array(z.any()).min(1, "Roadmap must have at least one goal"),
+      }),
+      postId: z.string().nonempty()
+
+    });
+
+    const validatedMetaData = savePostRoadmapSchema.safeParse({
+      userId,
+      roadmap,
+      postId
+    });
+
+    if (!validatedMetaData.success) {
+      next(new ValidationError(z.prettifyError(validatedMetaData.error)));
+      return;
+    }
+
+    const validatedData = validatedMetaData.data;
+    const { data: message, error } = await this.repo.savePostRoadmap(validatedData.userId, roadmap, validatedData.postId);
+
+    if (error) {
+      next(error);
+      return;
+    }
+
+    res.status(200).json({ message });
+
+  }
   saveRoadmap = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const userId = req.token;
     const { roadmap } = req.body;
@@ -31,10 +65,10 @@ class V1RoadmapController implements IRoadmapController {
       next(new ValidationError(z.prettifyError(validatedRoadmap.error)));
       return;
     }
-    const validated = validatedRoadmap.data;
+    const validatedData = validatedRoadmap.data;
 
     const { data: message, error } = await this.repo.saveRoadmap(
-      validated.userId,
+      validatedData.userId,
       roadmap
     );
 
@@ -75,11 +109,11 @@ class V1RoadmapController implements IRoadmapController {
       return;
     }
 
-    const validated = validateInputs.data;
+    const validatedData = validateInputs.data;
     const { data: roadmaps, error } = await this.repo.getPrivateRoadmapsMetaData(
-      validated.userId,
-      validated.limit ?? 10,
-      validated.skip ?? 0
+      validatedData.userId,
+      validatedData.limit ?? 10,
+      validatedData.skip ?? 0
     );
 
     if (error) {
@@ -164,7 +198,6 @@ class V1RoadmapController implements IRoadmapController {
     res.status(200).json({ message });
   };
   generateRoadmap = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    logger.info("Generating roadmap...");
     const { topic } = req.query;
     if (typeof topic !== "string" || topic.trim() === "") {
       next(new ValidationError("Topic is required and must be a non-empty string."));

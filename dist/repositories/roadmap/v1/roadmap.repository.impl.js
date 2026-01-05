@@ -17,6 +17,31 @@ const generated_roadmap_schema_1 = __importDefault(require("../../../utils/gener
 const errors_1 = require("../../../utils/errors");
 const ai = new genai_1.GoogleGenAI({ apiKey: process.env.GEMINI_KEY });
 let V1RoadmapRepository = class V1RoadmapRepository {
+    async savePostRoadmap(userId, roadmap, postId) {
+        try {
+            // Ensure all subgoals have a status field with default values
+            const processedGoals = roadmap.goals.map(goal => (Object.assign(Object.assign({}, goal), { subgoals: goal.subgoals.map(subgoal => (Object.assign(Object.assign({}, subgoal), { status: subgoal.status || { completed: false, completedAt: null } }))) })));
+            const savedRoadmap = await roadmap_1.default.create({
+                userId,
+                goals: processedGoals,
+                postId,
+                title: roadmap.title,
+                description: roadmap.description
+            });
+            await savedRoadmap.save();
+            return {
+                data: "Roadmap saved succesfully",
+                error: null
+            };
+        }
+        catch (error) {
+            logger_1.logger.error("Error saving posted roadmap");
+            return {
+                data: null,
+                error: new errors_1.DatabaseError(`Failed to save posted roadmap : ${error.message}`)
+            };
+        }
+    }
     async getPrivateRoadmap(userId, roadmapId) {
         try {
             const roadmap = await roadmap_1.default.findById(roadmapId);
@@ -151,14 +176,8 @@ let V1RoadmapRepository = class V1RoadmapRepository {
             const contentPrompt = process.env.CONTENT_PROMPT;
             const systemInstruction = process.env.SYSTEM_INSTRUCTION;
             const response = await ai.models.generateContent({
-                model: "gemini-2.0-flash",
-                contents: `
-        Generate a detailed roadmap for learning: "${topic}".
-    
-        ${contentPrompt}
-    
-        Make the roadmap comprehensive and logical, covering fundamental to advanced aspects of ${topic}.
-        `,
+                model: "gemini-2.5-flash",
+                contents: `Generate a concise but comprehensive roadmap for learning: "${topic}". ${contentPrompt}. Focus on essential milestones and key learning paths.`,
                 config: {
                     systemInstruction: systemInstruction,
                     safetySettings: [
@@ -168,15 +187,15 @@ let V1RoadmapRepository = class V1RoadmapRepository {
                         },
                         {
                             category: genai_1.HarmCategory.HARM_CATEGORY_HATE_SPEECH,
-                            threshold: genai_1.HarmBlockThreshold.BLOCK_LOW_AND_ABOVE,
+                            threshold: genai_1.HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
                         },
                         {
                             category: genai_1.HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
-                            threshold: genai_1.HarmBlockThreshold.BLOCK_LOW_AND_ABOVE,
+                            threshold: genai_1.HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
                         },
                         {
                             category: genai_1.HarmCategory.HARM_CATEGORY_HARASSMENT,
-                            threshold: genai_1.HarmBlockThreshold.BLOCK_LOW_AND_ABOVE,
+                            threshold: genai_1.HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
                         },
                     ],
                     responseMimeType: "application/json",
@@ -184,7 +203,7 @@ let V1RoadmapRepository = class V1RoadmapRepository {
                     temperature: 0.1,
                     topK: 40,
                     topP: 0.95,
-                    maxOutputTokens: 8192,
+                    maxOutputTokens: 4096, // Reduced from 8192 for faster response
                 },
             });
             // Handle possible null or undefined response

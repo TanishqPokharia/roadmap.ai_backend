@@ -30,11 +30,14 @@ let V1PostController = class V1PostController {
         };
         this.getPopularPosts = async (req, res, next) => {
             const { limit, skip } = req.query;
+            const userId = req.token;
             const popularPostsSchema = v4_1.z.object({
+                userId: v4_1.z.string().min(1, "User ID is required"),
                 limit: v4_1.z.preprocess((val) => Number(val), v4_1.z.number().int().nonnegative()),
                 skip: v4_1.z.preprocess((val) => Number(val), v4_1.z.number().int().nonnegative()),
             });
             const validation = popularPostsSchema.safeParse({
+                userId,
                 limit,
                 skip,
             });
@@ -43,7 +46,7 @@ let V1PostController = class V1PostController {
                 return;
             }
             const validated = validation.data;
-            const { data: posts, error } = await this.repo.getPopularPosts(validated.limit, validated.skip);
+            const { data: posts, error } = await this.repo.getPopularPosts(validated.userId, validated.limit, validated.skip);
             if (error) {
                 next(error);
                 return;
@@ -52,13 +55,16 @@ let V1PostController = class V1PostController {
         };
         this.getPostsByTitle = async (req, res, next) => {
             const { q, limit, skip } = req.query;
+            const userId = req.token;
             // validate params
             const postTitleSchema = v4_1.z.object({
+                userId: v4_1.z.string().min(1, "User ID is required"),
                 q: v4_1.z.string().min(1, "Proper title is required").max(100),
                 limit: v4_1.z.preprocess((val) => Number(val), v4_1.z.number().int().nonnegative()),
                 skip: v4_1.z.preprocess((val) => Number(val), v4_1.z.number().int().nonnegative()),
             });
             const validation = postTitleSchema.safeParse({
+                userId,
                 q,
                 limit,
                 skip,
@@ -68,7 +74,7 @@ let V1PostController = class V1PostController {
                 return;
             }
             const validated = validation.data;
-            const { data: posts, error } = await this.repo.getPostsByTitle(validated.q, validated.limit, validated.skip);
+            const { data: posts, error } = await this.repo.getPostsByTitle(validated.userId, validated.q, validated.limit, validated.skip);
             if (error) {
                 next(error);
                 return;
@@ -116,13 +122,16 @@ let V1PostController = class V1PostController {
         };
         this.getPostsByTime = async (req, res, next) => {
             const { time, limit, skip } = req.query;
+            const userId = req.token;
             // validate params
             const postTimeSchema = v4_1.z.object({
+                userId: v4_1.z.string().min(1, "User ID is required"),
                 time: v4_1.z.enum(["day", "week", "month", "year"]),
                 limit: v4_1.z.preprocess((val) => Number(val), v4_1.z.number().int().nonnegative()),
                 skip: v4_1.z.preprocess((val) => Number(val), v4_1.z.number().int().nonnegative()),
             });
             const validation = postTimeSchema.safeParse({
+                userId,
                 time,
                 limit,
                 skip,
@@ -132,7 +141,7 @@ let V1PostController = class V1PostController {
                 return;
             }
             const validated = validation.data;
-            const { data: posts, error } = await this.repo.getPostsByTime(validated.time, validated.limit, validated.skip);
+            const { data: posts, error } = await this.repo.getPostsByTime(validated.userId, validated.time, validated.limit, validated.skip);
             if (error) {
                 next(error);
                 return;
@@ -163,8 +172,10 @@ let V1PostController = class V1PostController {
         this.getPostsByAuthor = async (req, res, next) => {
             const authorId = req.params.authorId;
             const { limit, skip } = req.query;
+            const userId = req.token;
             // validate params
             const authorPostsSchema = v4_1.z.object({
+                userId: v4_1.z.string().min(1, "User ID is required"),
                 authorId: v4_1.z.string().min(1, "Author ID is required"),
                 limit: v4_1.z.preprocess((val) => Number(val), v4_1.z.int().nonnegative()),
                 skip: v4_1.z.preprocess((val) => Number(val), v4_1.z.int().nonnegative()),
@@ -179,7 +190,7 @@ let V1PostController = class V1PostController {
                 return;
             }
             const validated = validation.data;
-            const { data: posts, error } = await this.repo.getPostsByAuthor(validated.authorId, validated.limit, validated.skip);
+            const { data: posts, error } = await this.repo.getPostsByAuthor(validated.userId, validated.authorId, validated.limit, validated.skip);
             if (error) {
                 next(error);
                 return;

@@ -20,7 +20,9 @@ let V1UserController = class V1UserController {
     constructor(repo) {
         this.repo = repo;
         this.logout = async (req, res, next) => {
-            res.clearCookie("tokens", { httpOnly: true, sameSite: "none", signed: true, secure: true, partitioned: true, path: "/" }).status(200).json({ message: "User logged out successfully" });
+            const isProduction = process.env.NODE_ENV === "prod";
+            const cookieOptions = Object.assign({ httpOnly: true, signed: true, path: "/", sameSite: "none", secure: true, maxAge: 7 * 24 * 60 * 60 * 1000 }, (isProduction && { partitioned: true }));
+            res.clearCookie("tokens", cookieOptions).status(200).json({ message: "User logged out successfully" });
         };
         this.validateCookie = async (req, res, next) => {
             const userId = req.token;
@@ -60,7 +62,9 @@ let V1UserController = class V1UserController {
                 res.status(201).json({ accessToken, refreshToken });
             }
             else {
-                res.status(201).cookie("tokens", { accessToken, refreshToken }, { httpOnly: true, sameSite: "none", signed: true, secure: true, partitioned: true, path: "/" }).json({ message: "User registered successfully" });
+                const isProduction = process.env.NODE_ENV === "prod";
+                const cookieOptions = Object.assign({ httpOnly: true, signed: true, path: "/", sameSite: "none", secure: true, maxAge: 7 * 24 * 60 * 60 * 1000 }, (isProduction && { partitioned: true }));
+                res.status(201).cookie("tokens", { accessToken, refreshToken }, cookieOptions).json({ message: "User registered successfully" });
             }
         };
         this.login = async (req, res, next) => {
@@ -91,17 +95,19 @@ let V1UserController = class V1UserController {
                 res.status(200).json({ accessToken, refreshToken });
             }
             else {
-                res.status(200).cookie("tokens", { accessToken, refreshToken }, { httpOnly: true, sameSite: "none", signed: true, secure: true, partitioned: true, path: "/" }).json({ message: "User logged in successfully" });
+                const isProduction = process.env.NODE_ENV === "prod";
+                const cookieOptions = Object.assign({ httpOnly: true, signed: true, path: "/", sameSite: "none", secure: true, maxAge: 7 * 24 * 60 * 60 * 1000 }, (isProduction && { partitioned: true }));
+                res.status(200).cookie("tokens", { accessToken, refreshToken }, cookieOptions).json({ message: "User logged in successfully" });
             }
         };
         this.refresh = async (req, res, next) => {
             var _a, _b, _c, _d, _e, _f, _g, _h;
-            if (!req.body) {
-                next(new errors_1.ValidationError("Request body is required"));
-                return;
-            }
             let refreshToken;
             if (((_a = req.useragent) === null || _a === void 0 ? void 0 : _a.isAndroid) || ((_b = req.useragent) === null || _b === void 0 ? void 0 : _b.isiPhone) || ((_c = req.useragent) === null || _c === void 0 ? void 0 : _c.isiPad) || ((_d = req.useragent) === null || _d === void 0 ? void 0 : _d.isMobile)) {
+                if (!req.body) {
+                    next(new errors_1.ValidationError("Request body is required"));
+                    return;
+                }
                 refreshToken = req.body.refreshToken;
             }
             else {
@@ -130,7 +136,9 @@ let V1UserController = class V1UserController {
                 res.status(200).json({ accessToken, refreshToken: newRefreshToken });
             }
             else {
-                res.status(200).cookie("tokens", { accessToken, refreshToken: newRefreshToken }, { httpOnly: true, sameSite: "none", signed: true, secure: true, partitioned: true, path: "/" }).json({ message: "Token refreshed successfully" });
+                const isProduction = process.env.NODE_ENV === "prod";
+                const cookieOptions = Object.assign({ httpOnly: true, signed: true, path: "/", sameSite: "none", secure: true, maxAge: 7 * 24 * 60 * 60 * 1000 }, (isProduction && { partitioned: true }));
+                res.status(200).cookie("tokens", { accessToken, refreshToken: newRefreshToken }, cookieOptions).json({ message: "Token refreshed successfully" });
             }
         };
         this.uploadAvatar = async (req, res, next) => {

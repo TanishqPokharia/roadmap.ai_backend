@@ -1,4 +1,4 @@
-import { NextFunction, Request, Response } from "express";
+import { CookieOptions, NextFunction, Request, Response } from "express";
 import IUserController from "../user.controller.interface";
 import IUserRepository from "../../../repositories/user/user.repository.interface";
 import { inject, injectable } from "tsyringe";
@@ -10,7 +10,17 @@ import { ValidationError } from "../../../utils/errors";
 class V1UserController implements IUserController {
   constructor(@inject("UserRepository") private repo: IUserRepository) { }
   logout = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    res.clearCookie("tokens", { httpOnly: true, sameSite: "none", signed: true, secure: true, partitioned: true, path: "/" }).status(200).json({ message: "User logged out successfully" });
+    const isProduction = process.env.NODE_ENV === "prod";
+    const cookieOptions:CookieOptions = {
+      httpOnly: true,
+      signed: true,
+      path: "/",
+      sameSite: "none",
+      secure: true,
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in milliseconds
+      ...(isProduction && { partitioned: true })
+    };
+    res.clearCookie("tokens", cookieOptions).status(200).json({ message: "User logged out successfully" });
   }
   validateCookie = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const userId = req.token;
@@ -57,7 +67,17 @@ class V1UserController implements IUserController {
     if (req.useragent?.isAndroid || req.useragent?.isiPhone || req.useragent?.isiPad || req.useragent?.isMobile) {
       res.status(201).json({ accessToken, refreshToken });
     } else {
-      res.status(201).cookie("tokens", { accessToken, refreshToken }, { httpOnly: true, sameSite: "none", signed: true, secure: true, partitioned: true, path: "/" }).json({ message: "User registered successfully" });
+      const isProduction = process.env.NODE_ENV === "prod";
+      const cookieOptions:CookieOptions = {
+        httpOnly: true,
+        signed: true,
+        path: "/",
+        sameSite: "none",
+        secure: true,
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in milliseconds
+        ...(isProduction && { partitioned: true })
+      };
+      res.status(201).cookie("tokens", { accessToken, refreshToken }, cookieOptions).json({ message: "User registered successfully" });
     }
 
 
@@ -93,18 +113,27 @@ class V1UserController implements IUserController {
     if (req.useragent?.isAndroid || req.useragent?.isiPhone || req.useragent?.isiPad || req.useragent?.isMobile) {
       res.status(200).json({ accessToken, refreshToken });
     } else {
-      res.status(200).cookie("tokens", { accessToken, refreshToken }, { httpOnly: true, sameSite: "none", signed: true, secure: true, partitioned: true, path: "/" }).json({ message: "User logged in successfully" });
+      const isProduction = process.env.NODE_ENV === "prod";
+      const cookieOptions:CookieOptions = {
+        httpOnly: true,
+        signed: true,
+        path: "/",
+        sameSite: "none",
+        secure: true,
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in milliseconds
+        ...(isProduction && { partitioned: true })
+      };
+      res.status(200).cookie("tokens", { accessToken, refreshToken }, cookieOptions).json({ message: "User logged in successfully" });
     }
   };
 
   refresh = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    if (!req.body) {
-      next(new ValidationError("Request body is required"));
-      return;
-    }
-
     let refreshToken: string;
     if (req.useragent?.isAndroid || req.useragent?.isiPhone || req.useragent?.isiPad || req.useragent?.isMobile) {
+      if (!req.body) {
+          next(new ValidationError("Request body is required"));
+          return;
+        }
       refreshToken = req.body.refreshToken;
     } else {
       if (!req.signedCookies || !req.signedCookies.tokens || !req.signedCookies.tokens.refreshToken) {
@@ -139,7 +168,17 @@ class V1UserController implements IUserController {
     if (req.useragent?.isAndroid || req.useragent?.isiPhone || req.useragent?.isiPad || req.useragent?.isMobile) {
       res.status(200).json({ accessToken, refreshToken: newRefreshToken });
     } else {
-      res.status(200).cookie("tokens", { accessToken, refreshToken: newRefreshToken }, { httpOnly: true, sameSite: "none", signed: true, secure: true, partitioned: true, path: "/" }).json({ message: "Token refreshed successfully" });
+      const isProduction = process.env.NODE_ENV === "prod";
+      const cookieOptions:CookieOptions = {
+        httpOnly: true,
+        signed: true,
+        path: "/",
+        sameSite: "none",
+        secure: true,
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in milliseconds
+        ...(isProduction && { partitioned: true })
+      };
+      res.status(200).cookie("tokens", { accessToken, refreshToken: newRefreshToken }, cookieOptions).json({ message: "Token refreshed successfully" });
     }
   };
 

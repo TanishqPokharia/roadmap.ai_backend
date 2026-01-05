@@ -1,5 +1,5 @@
 import AuthResponse from "../../models/auth.response";
-import DataOrError from "../../utils/either";
+import DataOrError from "../../utils/data.or.error";
 
 export default interface IUserRepository {
   signUp(

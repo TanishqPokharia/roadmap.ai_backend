@@ -15,10 +15,5 @@ interface IPost {
   createdAt: Date;
 }
 
-interface IAuthor {
-  authorId: Types.ObjectId;
-  username: string;
-  email: string;
-}
 
 export default IPost;

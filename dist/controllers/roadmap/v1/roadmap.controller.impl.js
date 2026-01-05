@@ -13,12 +13,40 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const tsyringe_1 = require("tsyringe");
-const logger_1 = require("../../../utils/logger");
 const v4_1 = require("zod/v4");
 const errors_1 = require("../../../utils/errors");
 let V1RoadmapController = class V1RoadmapController {
     constructor(repo) {
         this.repo = repo;
+        this.savePostRoadmap = async (req, res, next) => {
+            const userId = req.token;
+            const { roadmap, postId } = req.body;
+            const savePostRoadmapSchema = v4_1.z.object({
+                userId: v4_1.z.string().min(1, "User ID is required"),
+                roadmap: v4_1.z.object({
+                    title: v4_1.z.string().min(1, "Roadmap title is required").max(100),
+                    description: v4_1.z.string().min(10, "Description is required").max(400),
+                    goals: v4_1.z.array(v4_1.z.any()).min(1, "Roadmap must have at least one goal"),
+                }),
+                postId: v4_1.z.string().nonempty()
+            });
+            const validatedMetaData = savePostRoadmapSchema.safeParse({
+                userId,
+                roadmap,
+                postId
+            });
+            if (!validatedMetaData.success) {
+                next(new errors_1.ValidationError(v4_1.z.prettifyError(validatedMetaData.error)));
+                return;
+            }
+            const validatedData = validatedMetaData.data;
+            const { data: message, error } = await this.repo.savePostRoadmap(validatedData.userId, roadmap, validatedData.postId);
+            if (error) {
+                next(error);
+                return;
+            }
+            res.status(200).json({ message });
+        };
         this.saveRoadmap = async (req, res, next) => {
             const userId = req.token;
             const { roadmap } = req.body;
@@ -39,8 +67,8 @@ let V1RoadmapController = class V1RoadmapController {
                 next(new errors_1.ValidationError(v4_1.z.prettifyError(validatedRoadmap.error)));
                 return;
             }
-            const validated = validatedRoadmap.data;
-            const { data: message, error } = await this.repo.saveRoadmap(validated.userId, roadmap);
+            const validatedData = validatedRoadmap.data;
+            const { data: message, error } = await this.repo.saveRoadmap(validatedData.userId, roadmap);
             if (error) {
                 next(error);
                 return;
@@ -74,8 +102,8 @@ let V1RoadmapController = class V1RoadmapController {
                 next(new errors_1.ValidationError(v4_1.z.prettifyError(validateInputs.error)));
                 return;
             }
-            const validated = validateInputs.data;
-            const { data: roadmaps, error } = await this.repo.getPrivateRoadmapsMetaData(validated.userId, (_a = validated.limit) !== null && _a !== void 0 ? _a : 10, (_b = validated.skip) !== null && _b !== void 0 ? _b : 0);
+            const validatedData = validateInputs.data;
+            const { data: roadmaps, error } = await this.repo.getPrivateRoadmapsMetaData(validatedData.userId, (_a = validatedData.limit) !== null && _a !== void 0 ? _a : 10, (_b = validatedData.skip) !== null && _b !== void 0 ? _b : 0);
             if (error) {
                 next(error);
                 return;
@@ -133,7 +161,6 @@ let V1RoadmapController = class V1RoadmapController {
             res.status(200).json({ message });
         };
         this.generateRoadmap = async (req, res, next) => {
-            logger_1.logger.info("Generating roadmap...");
             const { topic } = req.query;
             if (typeof topic !== "string" || topic.trim() === "") {
                 next(new errors_1.ValidationError("Topic is required and must be a non-empty string."));

@@ -1,23 +1,26 @@
 import IPost from "../../models/post";
 import { IPostDetails } from "../../models/post.details";
 import IRoadmap from "../../models/roadmap";
-import DataOrError from "../../utils/either";
+import DataOrError from "../../utils/data.or.error";
 
 export default interface IPostRepository {
-  getPopularPosts(limit: number, skip: number): Promise<DataOrError<IPost[]>>;
+  getPopularPosts(userId: string, limit: number, skip: number): Promise<DataOrError<IPost[]>>;
   getPostsByTitle(
+    userId: string,
     topic: string,
     limit: number,
     skip: number
   ): Promise<DataOrError<IPost[]>>;
   uploadPost(userId: string, roadmap: IRoadmap, bannerImage: Buffer): Promise<DataOrError<string>>;
   getPostsByTime(
+    userId: string,
     time: PostTime,
     limit: number,
     skip: number
   ): Promise<DataOrError<IPost[]>>;
   togglePostLike(userId: string, postId: string): Promise<DataOrError<string>>;
   getPostsByAuthor(
+    userId: string,
     authorId: string,
     limit: number,
     skip: number

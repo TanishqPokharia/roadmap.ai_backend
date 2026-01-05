@@ -39,12 +39,27 @@ postSchema.virtual("author", {
         select: "username email avatar",
     }
 });
+postSchema.virtual("isLiked", {
+    ref: "Likes",
+    localField: "_id",
+    foreignField: "postId",
+    justOne: true,
+    options: {
+        select: "userId"
+    }
+});
 postSchema.set("toJSON", {
     virtuals: true,
     transform: (doc, ret) => {
         ret.id = ret._id;
         ret.title = ret.roadmap.title;
         ret.description = ret.roadmap.description;
+        if (ret.isLiked) {
+            ret.isLiked = true;
+        }
+        else {
+            ret.isLiked = false;
+        }
         delete ret.roadmap;
         delete ret._id;
         return ret;

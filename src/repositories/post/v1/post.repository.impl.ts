@@ -3,7 +3,7 @@ import IPost from "../../../models/post";
 import IRoadmap from "../../../models/roadmap";
 import Likes from "../../../schemas/likes";
 import Post from "../../../schemas/post";
-import DataOrError from "../../../utils/either";
+import DataOrError from "../../../utils/data.or.error";
 import { logger } from "../../../utils/logger";
 import IPostRepository, { PostTime } from "../post.repository.interface";
 import User from "../../../schemas/user";
@@ -94,8 +94,9 @@ class V1PostRepository implements IPostRepository {
     }
   }
   async getPopularPosts(
+    userId: string,
     limit: number,
-    skip: number
+    skip: number,
   ): Promise<DataOrError<IPost[]>> {
     try {
       const posts: IPost[] = await Post.find({
@@ -104,6 +105,9 @@ class V1PostRepository implements IPostRepository {
         },
       })
         .populate("author")
+        .populate("isLiked", null, Likes, {
+          userId
+        })
         .limit(limit)
         .skip(skip)
         .sort({ likes: -1 })
@@ -123,6 +127,7 @@ class V1PostRepository implements IPostRepository {
     }
   }
   async getPostsByTitle(
+    userId: string,
     topic: string,
     limit: number,
     skip: number
@@ -132,6 +137,9 @@ class V1PostRepository implements IPostRepository {
         "roadmap.title": { $regex: topic, $options: "i" },
       })
         .populate("author")
+        .populate("isLiked", null, Likes, {
+          userId
+        })
         .sort({ likes: -1 })
         .limit(limit)
         .skip(skip)
@@ -165,13 +173,17 @@ class V1PostRepository implements IPostRepository {
         };
       }
 
+
+
+      // image upload configuration with cropping and pubic id settings
+
       const options: UploadApiOptions = {
         unique_filename: false,
         overwrite: true,
         public_id: userId,
         folder: "roadmap_ai/avatars",
         transformation: [
-          { width: 200, height: 200, crop: "fill" },
+          { width: 800, height: 400, crop: "fit" },
           { quality: "auto", fetch_format: "auto" },
         ],
         resource_type: "image",
@@ -219,6 +231,7 @@ class V1PostRepository implements IPostRepository {
     }
   }
   async getPostsByTime(
+    userId: string,
     time: PostTime,
     limit: number,
     skip: number
@@ -237,7 +250,10 @@ class V1PostRepository implements IPostRepository {
         },
       })
 
-        .populate("author", "username email avatar")
+        .populate("author")
+        .populate("isLiked", null, Likes, {
+          userId
+        })
         .sort({ createdAt: -1 })
         .limit(limit)
         .skip(skip)
@@ -351,6 +367,7 @@ class V1PostRepository implements IPostRepository {
   }
 
   async getPostsByAuthor(
+    userId: string,
     authorId: string,
     limit: number,
     skip: number
@@ -359,6 +376,10 @@ class V1PostRepository implements IPostRepository {
       const posts = await Post.find()
         .where({
           authorId,
+        })
+        .populate("author")
+        .populate("isLiked", null, Likes, {
+          userId
         })
         .limit(limit)
         .skip(skip)

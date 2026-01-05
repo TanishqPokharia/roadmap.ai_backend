@@ -20,15 +20,16 @@ const router = Router();
 
 const controller: IPostController = container.resolve("PostController");
 
+router.use(checkToken);
 router.get("/", controller.getPopularPosts);
-router.get("/stats", checkToken, controller.getUserPostStats);
+router.get("/stats", controller.getUserPostStats);
 router.get("/time", controller.getPostsByTime);
 router.get("/title", controller.getPostsByTitle);
-router.get("/user", checkToken, controller.getUserPostsMetaData);
-router.get("/user/:postId", checkToken, controller.getUserPostRoadmap);
-router.get("/details/:postId", checkToken, controller.getPostDetails);
+router.get("/user", controller.getUserPostsMetaData);
+router.get("/user/:postId", controller.getUserPostRoadmap);
+router.get("/details/:postId", controller.getPostDetails);
 router.get("/:authorId", controller.getPostsByAuthor);
-router.patch("/like/:postId", checkToken, controller.togglePostLike);
-router.post("/", checkToken, uploader.single("bannerImage"), controller.uploadPost);
+router.patch("/like/:postId", controller.togglePostLike);
+router.post("/", uploader.single("bannerImage"), controller.uploadPost);
 
 export default router;

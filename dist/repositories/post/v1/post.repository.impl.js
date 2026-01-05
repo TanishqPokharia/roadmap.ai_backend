@@ -88,7 +88,7 @@ let V1PostRepository = class V1PostRepository {
             };
         }
     }
-    async getPopularPosts(limit, skip) {
+    async getPopularPosts(userId, limit, skip) {
         try {
             const posts = await post_1.default.find({
                 createdAt: {
@@ -96,6 +96,9 @@ let V1PostRepository = class V1PostRepository {
                 },
             })
                 .populate("author")
+                .populate("isLiked", null, likes_1.default, {
+                userId
+            })
                 .limit(limit)
                 .skip(skip)
                 .sort({ likes: -1 })
@@ -111,12 +114,15 @@ let V1PostRepository = class V1PostRepository {
             };
         }
     }
-    async getPostsByTitle(topic, limit, skip) {
+    async getPostsByTitle(userId, topic, limit, skip) {
         try {
             const posts = await post_1.default.find({
                 "roadmap.title": { $regex: topic, $options: "i" },
             })
                 .populate("author")
+                .populate("isLiked", null, likes_1.default, {
+                userId
+            })
                 .sort({ likes: -1 })
                 .limit(limit)
                 .skip(skip)
@@ -142,13 +148,14 @@ let V1PostRepository = class V1PostRepository {
                     error: new errors_1.NotFoundError("User not found"),
                 };
             }
+            // image upload configuration with cropping and pubic id settings
             const options = {
                 unique_filename: false,
                 overwrite: true,
                 public_id: userId,
                 folder: "roadmap_ai/avatars",
                 transformation: [
-                    { width: 200, height: 200, crop: "fill" },
+                    { width: 800, height: 400, crop: "fit" },
                     { quality: "auto", fetch_format: "auto" },
                 ],
                 resource_type: "image",
@@ -189,7 +196,7 @@ let V1PostRepository = class V1PostRepository {
             };
         }
     }
-    async getPostsByTime(time, limit, skip) {
+    async getPostsByTime(userId, time, limit, skip) {
         try {
             const timeMap = {
                 day: 1,
@@ -202,7 +209,10 @@ let V1PostRepository = class V1PostRepository {
                     $gte: new Date(Date.now() - 1000 * 60 * 60 * 24 * timeMap[time]),
                 },
             })
-                .populate("author", "username email avatar")
+                .populate("author")
+                .populate("isLiked", null, likes_1.default, {
+                userId
+            })
                 .sort({ createdAt: -1 })
                 .limit(limit)
                 .skip(skip)
@@ -292,11 +302,15 @@ let V1PostRepository = class V1PostRepository {
             };
         }
     }
-    async getPostsByAuthor(authorId, limit, skip) {
+    async getPostsByAuthor(userId, authorId, limit, skip) {
         try {
             const posts = await post_1.default.find()
                 .where({
                 authorId,
+            })
+                .populate("author")
+                .populate("isLiked", null, likes_1.default, {
+                userId
             })
                 .limit(limit)
                 .skip(skip)

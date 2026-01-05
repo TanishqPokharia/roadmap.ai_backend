@@ -17,12 +17,12 @@ const app = express();
 
 app.set("trust proxy", 1); // Trust first proxy
 
-// Enable CORS for all origins with credentials
 app.use(cors({
-  origin: [process.env.ORIGIN, "https://main.d20iqmdu4e490z.amplifyapp.com"], // Allow all origins
-  credentials: true, // Allow cookies to be sent
-  exposedHeaders: ['Set-Cookie'] // Expose Set-Cookie header to the client,
+  origin: ["http://localhost:8080", process.env.ORIGIN],
+  credentials: true,
+  exposedHeaders: ['Set-Cookie']
 }));
+
 
 app.use(express.json());
 app.use(cookieParser(process.env.COOKIE_SECRET));

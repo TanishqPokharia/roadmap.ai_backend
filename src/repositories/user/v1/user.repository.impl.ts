@@ -1,6 +1,6 @@
 import AuthResponse from "../../../models/auth.response";
 import User from "../../../schemas/user";
-import DataOrError from "../../../utils/either";
+import DataOrError from "../../../utils/data.or.error";
 import IUserRepository from "../user.repository.interface";
 import createAccessToken from "../../../utils/create.access.token";
 import createRefreshToken from "../../../utils/create.refresh.token";

@@ -4,6 +4,7 @@ import { NextFunction, Request, Response } from "express";
 import IPostRepository from "../../../repositories/post/post.repository.interface";
 import { z } from "zod/v4";
 import { ValidationError } from "../../../utils/errors";
+import { token } from "morgan";
 
 @injectable()
 class V1PostController implements IPostController {
@@ -23,11 +24,14 @@ class V1PostController implements IPostController {
 
   getPopularPosts = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const { limit, skip } = req.query;
+    const userId = req.token as string;
     const popularPostsSchema = z.object({
+      userId: z.string().min(1, "User ID is required"),
       limit: z.preprocess((val) => Number(val), z.number().int().nonnegative()),
       skip: z.preprocess((val) => Number(val), z.number().int().nonnegative()),
     });
     const validation = popularPostsSchema.safeParse({
+      userId,
       limit,
       skip,
     });
@@ -37,6 +41,7 @@ class V1PostController implements IPostController {
     }
     const validated = validation.data;
     const { data: posts, error } = await this.repo.getPopularPosts(
+      validated.userId,
       validated.limit,
       validated.skip
     );
@@ -48,14 +53,17 @@ class V1PostController implements IPostController {
   };
   getPostsByTitle = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const { q, limit, skip } = req.query;
+    const userId = req.token;
     // validate params
     const postTitleSchema = z.object({
+      userId: z.string().min(1, "User ID is required"),
       q: z.string().min(1, "Proper title is required").max(100),
       limit: z.preprocess((val) => Number(val), z.number().int().nonnegative()),
       skip: z.preprocess((val) => Number(val), z.number().int().nonnegative()),
     });
 
     const validation = postTitleSchema.safeParse({
+      userId,
       q,
       limit,
       skip,
@@ -68,6 +76,7 @@ class V1PostController implements IPostController {
 
     const validated = validation.data;
     const { data: posts, error } = await this.repo.getPostsByTitle(
+      validated.userId,
       validated.q,
       validated.limit,
       validated.skip
@@ -131,15 +140,19 @@ class V1PostController implements IPostController {
   };
   getPostsByTime = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const { time, limit, skip } = req.query;
+    const userId = req.token;
 
     // validate params
+
     const postTimeSchema = z.object({
+      userId: z.string().min(1, "User ID is required"),
       time: z.enum(["day", "week", "month", "year"]),
       limit: z.preprocess((val) => Number(val), z.number().int().nonnegative()),
       skip: z.preprocess((val) => Number(val), z.number().int().nonnegative()),
     });
 
     const validation = postTimeSchema.safeParse({
+      userId,
       time,
       limit,
       skip,
@@ -152,6 +165,7 @@ class V1PostController implements IPostController {
 
     const validated = validation.data;
     const { data: posts, error } = await this.repo.getPostsByTime(
+      validated.userId,
       validated.time,
       validated.limit,
       validated.skip
@@ -196,9 +210,11 @@ class V1PostController implements IPostController {
   getPostsByAuthor = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const authorId = req.params.authorId;
     const { limit, skip } = req.query;
+    const userId = req.token;
 
     // validate params
     const authorPostsSchema = z.object({
+      userId: z.string().min(1, "User ID is required"),
       authorId: z.string().min(1, "Author ID is required"),
       limit: z.preprocess((val) => Number(val), z.int().nonnegative()),
       skip: z.preprocess((val) => Number(val), z.int().nonnegative()),
@@ -217,6 +233,7 @@ class V1PostController implements IPostController {
 
     const validated = validation.data;
     const { data: posts, error } = await this.repo.getPostsByAuthor(
+      validated.userId,
       validated.authorId,
       validated.limit,
       validated.skip
@@ -228,8 +245,6 @@ class V1PostController implements IPostController {
     }
     res.status(200).json({ posts });
   };
-
-
 
   getPostDetails = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const postId = req.params.postId;

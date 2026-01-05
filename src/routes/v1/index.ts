@@ -6,7 +6,7 @@ import checkToken from "../../middlewares/check.token";
 import errorHandler from "../../middlewares/error.handler";
 const router = Router();
 
-router.use("/roadmap", checkToken, roadmapRouter);
+router.use("/roadmap", roadmapRouter);
 router.use("/post", postRouter);
 router.use("/auth", userRouter);
 export default router;
