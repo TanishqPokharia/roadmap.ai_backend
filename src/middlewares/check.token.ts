@@ -6,7 +6,7 @@ const checkToken = async (
   res: Response,
   next: NextFunction
 ): Promise<void> => {
-  if (req.useragent?.isAndroid || req.useragent?.isiPhone || req.useragent?.isiPad || req.useragent?.isMobile) {
+  if (req.headers['x-client-os'] === 'android') {
     mobileHandler(req, res, next);
     return;
   }

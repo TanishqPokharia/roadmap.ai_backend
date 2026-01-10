@@ -33,7 +33,6 @@ let V1UserController = class V1UserController {
             res.status(200).json({ message: 'Validated' });
         };
         this.signUp = async (req, res, next) => {
-            var _a, _b, _c, _d;
             const { username, email, password } = req.body;
             const signUpScehma = v4_1.z.object({
                 username: v4_1.z.string().min(8, "Min. 8 length username is required").max(20),
@@ -58,7 +57,7 @@ let V1UserController = class V1UserController {
                 return;
             }
             const { accessToken, refreshToken } = tokens;
-            if (((_a = req.useragent) === null || _a === void 0 ? void 0 : _a.isAndroid) || ((_b = req.useragent) === null || _b === void 0 ? void 0 : _b.isiPhone) || ((_c = req.useragent) === null || _c === void 0 ? void 0 : _c.isiPad) || ((_d = req.useragent) === null || _d === void 0 ? void 0 : _d.isMobile)) {
+            if (req.headers['x-client-os'] === 'android') {
                 res.status(201).json({ accessToken, refreshToken });
             }
             else {
@@ -68,7 +67,6 @@ let V1UserController = class V1UserController {
             }
         };
         this.login = async (req, res, next) => {
-            var _a, _b, _c, _d;
             const { email, password } = req.body;
             const loginSchema = v4_1.z.object({
                 email: v4_1.z.email("Invalid email format"),
@@ -91,7 +89,7 @@ let V1UserController = class V1UserController {
                 return;
             }
             const { accessToken, refreshToken } = tokens;
-            if (((_a = req.useragent) === null || _a === void 0 ? void 0 : _a.isAndroid) || ((_b = req.useragent) === null || _b === void 0 ? void 0 : _b.isiPhone) || ((_c = req.useragent) === null || _c === void 0 ? void 0 : _c.isiPad) || ((_d = req.useragent) === null || _d === void 0 ? void 0 : _d.isMobile)) {
+            if (req.headers['x-client-os'] === "android") {
                 res.status(200).json({ accessToken, refreshToken });
             }
             else {
@@ -101,14 +99,18 @@ let V1UserController = class V1UserController {
             }
         };
         this.refresh = async (req, res, next) => {
-            var _a, _b, _c, _d, _e, _f, _g, _h;
             let refreshToken;
-            if (((_a = req.useragent) === null || _a === void 0 ? void 0 : _a.isAndroid) || ((_b = req.useragent) === null || _b === void 0 ? void 0 : _b.isiPhone) || ((_c = req.useragent) === null || _c === void 0 ? void 0 : _c.isiPad) || ((_d = req.useragent) === null || _d === void 0 ? void 0 : _d.isMobile)) {
-                if (!req.body) {
-                    next(new errors_1.ValidationError("Request body is required"));
+            if (req.headers['x-client-os'] === "android") {
+                if (!req.headers.authorization) {
+                    next(new errors_1.ValidationError("Refresh token is required"));
                     return;
                 }
-                refreshToken = req.body.refreshToken;
+                const authHeader = req.headers.authorization.split(" ");
+                if (authHeader.length < 2 || authHeader.at(0) !== 'Bearer') {
+                    next(new errors_1.ValidationError('Invalid refresh token format'));
+                    return;
+                }
+                refreshToken = authHeader.at(1);
             }
             else {
                 if (!req.signedCookies || !req.signedCookies.tokens || !req.signedCookies.tokens.refreshToken) {
@@ -132,7 +134,7 @@ let V1UserController = class V1UserController {
                 return;
             }
             const { accessToken, refreshToken: newRefreshToken } = tokens;
-            if (((_e = req.useragent) === null || _e === void 0 ? void 0 : _e.isAndroid) || ((_f = req.useragent) === null || _f === void 0 ? void 0 : _f.isiPhone) || ((_g = req.useragent) === null || _g === void 0 ? void 0 : _g.isiPad) || ((_h = req.useragent) === null || _h === void 0 ? void 0 : _h.isMobile)) {
+            if (req.headers['x-client-os'] === "android") {
                 res.status(200).json({ accessToken, refreshToken: newRefreshToken });
             }
             else {

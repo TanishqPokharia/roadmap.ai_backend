@@ -11,7 +11,7 @@ class V1UserController implements IUserController {
   constructor(@inject("UserRepository") private repo: IUserRepository) { }
   logout = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const isProduction = process.env.NODE_ENV === "prod";
-    const cookieOptions:CookieOptions = {
+    const cookieOptions: CookieOptions = {
       httpOnly: true,
       signed: true,
       path: "/",
@@ -64,11 +64,11 @@ class V1UserController implements IUserController {
     }
     const { accessToken, refreshToken } = tokens!;
 
-    if (req.useragent?.isAndroid || req.useragent?.isiPhone || req.useragent?.isiPad || req.useragent?.isMobile) {
+    if (req.headers['x-client-os'] === 'android') {
       res.status(201).json({ accessToken, refreshToken });
     } else {
       const isProduction = process.env.NODE_ENV === "prod";
-      const cookieOptions:CookieOptions = {
+      const cookieOptions: CookieOptions = {
         httpOnly: true,
         signed: true,
         path: "/",
@@ -110,11 +110,12 @@ class V1UserController implements IUserController {
     }
     const { accessToken, refreshToken } = tokens!;
 
-    if (req.useragent?.isAndroid || req.useragent?.isiPhone || req.useragent?.isiPad || req.useragent?.isMobile) {
+
+    if (req.headers['x-client-os'] === "android") {
       res.status(200).json({ accessToken, refreshToken });
     } else {
       const isProduction = process.env.NODE_ENV === "prod";
-      const cookieOptions:CookieOptions = {
+      const cookieOptions: CookieOptions = {
         httpOnly: true,
         signed: true,
         path: "/",
@@ -129,12 +130,17 @@ class V1UserController implements IUserController {
 
   refresh = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     let refreshToken: string;
-    if (req.useragent?.isAndroid || req.useragent?.isiPhone || req.useragent?.isiPad || req.useragent?.isMobile) {
-      if (!req.body) {
-          next(new ValidationError("Request body is required"));
-          return;
-        }
-      refreshToken = req.body.refreshToken;
+    if (req.headers['x-client-os'] === "android") {
+      if (!req.headers.authorization) {
+        next(new ValidationError("Refresh token is required"));
+        return;
+      }
+      const authHeader = req.headers.authorization.split(" ");
+      if (authHeader.length < 2 || authHeader.at(0) !== 'Bearer') {
+        next(new ValidationError('Invalid refresh token format'));
+        return;
+      }
+      refreshToken = authHeader.at(1);
     } else {
       if (!req.signedCookies || !req.signedCookies.tokens || !req.signedCookies.tokens.refreshToken) {
         next(new ValidationError("Refresh token is required"));
@@ -165,11 +171,13 @@ class V1UserController implements IUserController {
     }
     const { accessToken, refreshToken: newRefreshToken } = tokens!;
 
-    if (req.useragent?.isAndroid || req.useragent?.isiPhone || req.useragent?.isiPad || req.useragent?.isMobile) {
+
+
+    if (req.headers['x-client-os'] === "android") {
       res.status(200).json({ accessToken, refreshToken: newRefreshToken });
     } else {
       const isProduction = process.env.NODE_ENV === "prod";
-      const cookieOptions:CookieOptions = {
+      const cookieOptions: CookieOptions = {
         httpOnly: true,
         signed: true,
         path: "/",
@@ -221,5 +229,8 @@ class V1UserController implements IUserController {
     res.status(200).json(data);
   }
 }
+
+
+
 
 export default V1UserController;

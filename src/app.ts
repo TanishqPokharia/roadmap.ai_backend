@@ -11,7 +11,6 @@ import cors from "cors";
 import v1Router from "./routes/v1/index";
 import { httpLogger, logger } from "./utils/logger";
 import errorHandler from "./middlewares/error.handler";
-import useragent from "express-useragent";
 import cookieParser from "cookie-parser";
 const app = express();
 
@@ -28,7 +27,6 @@ app.use(express.json());
 app.use(cookieParser(process.env.COOKIE_SECRET));
 app.use(express.urlencoded({ extended: true }));
 app.use(httpLogger);
-app.use(useragent.express());
 
 
 app.use("/api/v1", v1Router);
