@@ -7,12 +7,15 @@ const functions_1 = require("@vercel/functions");
 const mongoose_1 = __importDefault(require("mongoose"));
 const logger_1 = require("./utils/logger");
 const options = {
-    appName: "devrel.vercel.integration",
-    timeoutMS: 10000,
-    connectTimeoutMS: 10000,
-    minPoolSize: 10,
-    maxIdleTimeMS: 10000,
-    maxPoolSize: 30,
+    appName: "roadmap.ai",
+    timeoutMS: 30000,
+    connectTimeoutMS: 30000,
+    serverSelectionTimeoutMS: 30000,
+    socketTimeoutMS: 30000,
+    minPoolSize: 2,
+    maxIdleTimeMS: 45000,
+    maxPoolSize: 10,
+    retryReads: true,
 };
 mongoose_1.default.connect(process.env.MONGODB_URI, options).then((client) => {
     (0, functions_1.attachDatabasePool)(client.connection.getClient());

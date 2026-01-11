@@ -3,12 +3,15 @@ import mongoose, { ConnectOptions } from "mongoose";
 import { logger } from "./utils/logger";
 
 const options: ConnectOptions = {
-  appName: "devrel.vercel.integration",
-  timeoutMS: 10000,
-  connectTimeoutMS: 10000,
-  minPoolSize: 10,
-  maxIdleTimeMS: 10000,
-  maxPoolSize: 30,
+  appName: "roadmap.ai",
+  timeoutMS: 30000,
+  connectTimeoutMS: 30000,
+  serverSelectionTimeoutMS: 30000,
+  socketTimeoutMS: 30000,
+  minPoolSize: 2,
+  maxIdleTimeMS: 45000,
+  maxPoolSize: 10,
+  retryReads: true,
 };
 
 
