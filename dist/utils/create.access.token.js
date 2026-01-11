@@ -7,7 +7,7 @@ const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const createAccessToken = (userId) => {
     const secret = process.env.ACCESS_TOKEN_SECRET;
     const token = jsonwebtoken_1.default.sign({ id: userId }, secret, {
-        expiresIn: "10m",
+        expiresIn: "20m",
         algorithm: "HS256",
     });
     return token;

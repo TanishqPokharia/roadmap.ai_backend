@@ -8,10 +8,13 @@ const mongoose_1 = __importDefault(require("mongoose"));
 const logger_1 = require("./utils/logger");
 const options = {
     appName: "devrel.vercel.integration",
+    timeoutMS: 10000,
+    connectTimeoutMS: 10000,
+    minPoolSize: 10,
     maxIdleTimeMS: 5000,
-    maxPoolSize: 10,
+    maxPoolSize: 20,
 };
-const connection = mongoose_1.default.connect(process.env.MONGODB_URI, options).then((client) => {
+mongoose_1.default.connect(process.env.MONGODB_URI, options).then((client) => {
     (0, functions_1.attachDatabasePool)(client.connection.getClient());
     logger_1.logger.info("Connected to db");
     return client;
@@ -19,4 +22,3 @@ const connection = mongoose_1.default.connect(process.env.MONGODB_URI, options).
     console.error("Error connecting to mongodb");
     console.error(error);
 });
-exports.default = connection;
