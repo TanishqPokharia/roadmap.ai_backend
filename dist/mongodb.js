@@ -11,8 +11,8 @@ const options = {
     timeoutMS: 10000,
     connectTimeoutMS: 10000,
     minPoolSize: 10,
-    maxIdleTimeMS: 5000,
-    maxPoolSize: 20,
+    maxIdleTimeMS: 10000,
+    maxPoolSize: 30,
 };
 mongoose_1.default.connect(process.env.MONGODB_URI, options).then((client) => {
     (0, functions_1.attachDatabasePool)(client.connection.getClient());

@@ -7,8 +7,8 @@ const options: ConnectOptions = {
   timeoutMS: 10000,
   connectTimeoutMS: 10000,
   minPoolSize: 10,
-  maxIdleTimeMS: 5000,
-  maxPoolSize: 20,
+  maxIdleTimeMS: 10000,
+  maxPoolSize: 30,
 };
 
 
