@@ -15,11 +15,11 @@ const options: ConnectOptions = {
 };
 
 
-mongoose.connect(process.env.MONGODB_URI, options).then((client) => {
+mongoose.connect(process.env.MONGODB_URI ?? "", options).then((client: any) => {
   attachDatabasePool(client.connection.getClient());
   logger.info("Connected to db");
   return client;
-}).catch((error) => {
+}).catch((error: any) => {
   console.error("Error connecting to mongodb");
   console.error(error);
 });

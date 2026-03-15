@@ -148,12 +148,13 @@ let V1PostRepository = class V1PostRepository {
                     error: new errors_1.NotFoundError("User not found"),
                 };
             }
-            // image upload configuration with cropping and pubic id settings
+            // image upload configuration for post banners (kept separate from avatars)
+            const bannerPublicId = `${userId}_${new mongoose_1.default.Types.ObjectId().toString()}`;
             const options = {
-                unique_filename: false,
-                overwrite: true,
-                public_id: userId,
-                folder: "roadmap_ai/avatars",
+                unique_filename: true,
+                overwrite: false,
+                public_id: bannerPublicId,
+                folder: "roadmap_ai/post_banners",
                 transformation: [
                     { width: 800, height: 400, crop: "fit" },
                     { quality: "auto", fetch_format: "auto" },

@@ -2,6 +2,7 @@
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
+var _a;
 Object.defineProperty(exports, "__esModule", { value: true });
 require("reflect-metadata");
 const dotenv_1 = __importDefault(require("dotenv"));
@@ -18,7 +19,7 @@ const cookie_parser_1 = __importDefault(require("cookie-parser"));
 const app = (0, express_1.default)();
 app.set("trust proxy", 1); // Trust first proxy
 app.use((0, cors_1.default)({
-    origin: ["http://localhost:8080", process.env.ORIGIN],
+    origin: ["http://localhost:8080", (_a = process.env.ORIGIN) !== null && _a !== void 0 ? _a : ""],
     credentials: true,
     exposedHeaders: ['Set-Cookie']
 }));

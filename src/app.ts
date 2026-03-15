@@ -17,7 +17,7 @@ const app = express();
 app.set("trust proxy", 1); // Trust first proxy
 
 app.use(cors({
-  origin: ["http://localhost:8080", process.env.ORIGIN],
+  origin: ["http://localhost:8080", process.env.ORIGIN ?? ""],
   credentials: true,
   exposedHeaders: ['Set-Cookie']
 }));

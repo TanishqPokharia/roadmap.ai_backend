@@ -76,7 +76,6 @@ class V1PostRepository implements IPostRepository {
       const isSaved = savedRoadmapId !== null;
 
       // preserve the roadmap from being removed during toJson
-
       const fullPost = post.toObject();
       delete fullPost._id;
       const data: IPostDetails = {
@@ -175,13 +174,15 @@ class V1PostRepository implements IPostRepository {
 
 
 
-      // image upload configuration with cropping and pubic id settings
+      // image upload configuration for post banners (kept separate from avatars)
+
+      const bannerPublicId = `${userId}_${new mongoose.Types.ObjectId().toString()}`;
 
       const options: UploadApiOptions = {
-        unique_filename: false,
-        overwrite: true,
-        public_id: userId,
-        folder: "roadmap_ai/avatars",
+        unique_filename: true,
+        overwrite: false,
+        public_id: bannerPublicId,
+        folder: "roadmap_ai/post_banners",
         transformation: [
           { width: 800, height: 400, crop: "fit" },
           { quality: "auto", fetch_format: "auto" },
