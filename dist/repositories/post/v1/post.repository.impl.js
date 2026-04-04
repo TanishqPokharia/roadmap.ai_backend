@@ -22,10 +22,8 @@ const mongoose_1 = __importDefault(require("mongoose"));
 let V1PostRepository = class V1PostRepository {
     async getUserPostStats(userId) {
         try {
-            // Convert string userId to ObjectId for proper matching
-            const userObjectId = new mongoose_1.default.Types.ObjectId(userId);
             const stats = await post_1.default.aggregate([
-                { $match: { authorId: userObjectId } },
+                { $match: { authorId: userId } },
                 {
                     $group: {
                         _id: null,
@@ -92,7 +90,7 @@ let V1PostRepository = class V1PostRepository {
         try {
             const posts = await post_1.default.find({
                 createdAt: {
-                    $gte: new Date(Date.now() - 1000 * 60 * 60 * 24 * 14),
+                    $gte: new Date(Date.now() - 1000 * 60 * 60 * 24 * 14), // uploaded within past two weeks
                 },
             })
                 .populate("author")

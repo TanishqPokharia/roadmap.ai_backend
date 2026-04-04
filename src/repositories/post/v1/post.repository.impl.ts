@@ -22,11 +22,8 @@ import { IPostDetails } from "../../../models/post.details";
 class V1PostRepository implements IPostRepository {
   async getUserPostStats(userId: string): Promise<DataOrError<IUserPostStats>> {
     try {
-      // Convert string userId to ObjectId for proper matching
-      const userObjectId = new mongoose.Types.ObjectId(userId);
-
       const stats = await Post.aggregate([
-        { $match: { authorId: userObjectId } },
+        { $match: { authorId: userId } },
         {
           $group: {
             _id: null,
@@ -100,7 +97,7 @@ class V1PostRepository implements IPostRepository {
     try {
       const posts: IPost[] = await Post.find({
         createdAt: {
-          $gte: new Date(Date.now() - 1000 * 60 * 60 * 24 * 14),
+          $gte: new Date(Date.now() - 1000 * 60 * 60 * 24 * 14), // uploaded within past two weeks
         },
       })
         .populate("author")
