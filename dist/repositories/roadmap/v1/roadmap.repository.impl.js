@@ -218,10 +218,10 @@ let V1RoadmapRepository = class V1RoadmapRepository {
             return { data: roadmap, error: null };
         }
         catch (error) {
-            logger_1.logger.error(error, "Error processing API response:");
+            logger_1.logger.error(error, "Error processing roadmap API response:");
             return {
                 data: null,
-                error: new errors_1.ExternalServiceError(`Failed to process API response: ${error.message}`)
+                error: new errors_1.ExternalServiceError(`Failed to process roadmap generation response: ${error.message}`)
             };
         }
     }

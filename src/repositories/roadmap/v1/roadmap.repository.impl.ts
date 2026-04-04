@@ -258,10 +258,10 @@ class V1RoadmapRepository implements IRoadmapRepository {
 
       return { data: roadmap, error: null };
     } catch (error) {
-      logger.error(error, "Error processing API response:");
+      logger.error(error, "Error processing roadmap API response:");
       return {
         data: null,
-        error: new ExternalServiceError(`Failed to process API response: ${(error as Error).message}`)
+        error: new ExternalServiceError(`Failed to process roadmap generation response: ${(error as Error).message}`)
       };
     }
   }
