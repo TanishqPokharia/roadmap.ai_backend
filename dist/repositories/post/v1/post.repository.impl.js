@@ -147,7 +147,7 @@ let V1PostRepository = class V1PostRepository {
                 };
             }
             // image upload configuration for post banners (kept separate from avatars)
-            const bannerPublicId = `${userId}_${new mongoose_1.default.Types.ObjectId().toString()}`;
+            const bannerPublicId = `${userId}_banner_${new mongoose_1.default.Types.ObjectId().toString()}`;
             const options = {
                 unique_filename: true,
                 overwrite: false,

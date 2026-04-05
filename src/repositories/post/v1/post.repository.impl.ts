@@ -172,8 +172,7 @@ class V1PostRepository implements IPostRepository {
 
 
       // image upload configuration for post banners (kept separate from avatars)
-
-      const bannerPublicId = `${userId}_${new mongoose.Types.ObjectId().toString()}`;
+      const bannerPublicId = `${userId}_banner_${new mongoose.Types.ObjectId().toString()}`;
 
       const options: UploadApiOptions = {
         unique_filename: true,

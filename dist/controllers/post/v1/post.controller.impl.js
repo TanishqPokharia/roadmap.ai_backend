@@ -181,6 +181,7 @@ let V1PostController = class V1PostController {
                 skip: v4_1.z.preprocess((val) => Number(val), v4_1.z.int().nonnegative()),
             });
             const validation = authorPostsSchema.safeParse({
+                userId,
                 authorId,
                 limit,
                 skip,

@@ -221,6 +221,7 @@ class V1PostController implements IPostController {
     });
 
     const validation = authorPostsSchema.safeParse({
+      userId,
       authorId,
       limit,
       skip,

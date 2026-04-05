@@ -1,7 +1,7 @@
 import { Router } from "express";
 import checkToken from "../../middlewares/check.token";
 import { container } from "tsyringe";
-import IPostController from "../../controllers/post/post.controller.interface";
+import IPostController from '../../controllers/post/post.controller.interface';
 import multer from "multer";
 
 const uploader = multer({
@@ -20,15 +20,16 @@ const router = Router();
 
 const controller: IPostController = container.resolve("PostController");
 
+
 router.use(checkToken);
 router.get("/", controller.getPopularPosts);
+router.get("/:postId", controller.getPostDetails);
 router.get("/stats", controller.getUserPostStats);
 router.get("/time", controller.getPostsByTime);
 router.get("/title", controller.getPostsByTitle);
 router.get("/user", controller.getUserPostsMetaData);
 router.get("/user/:postId", controller.getUserPostRoadmap);
-router.get("/details/:postId", controller.getPostDetails);
-router.get("/:authorId", controller.getPostsByAuthor);
+router.get("/author/:authorId", controller.getPostsByAuthor);
 router.patch("/like/:postId", controller.togglePostLike);
 router.post("/", uploader.single("bannerImage"), controller.uploadPost);
 
