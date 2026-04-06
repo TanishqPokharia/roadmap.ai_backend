@@ -123,7 +123,7 @@ let V1UserRepository = class V1UserRepository {
     async uploadAvatar(userId, avatar) {
         try {
             const options = {
-                unique_filename: false,
+                unique_filename: true,
                 overwrite: true,
                 public_id: userId,
                 folder: "roadmap_ai/avatars",

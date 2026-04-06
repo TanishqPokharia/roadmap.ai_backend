@@ -138,7 +138,7 @@ class V1UserRepository implements IUserRepository {
   ): Promise<DataOrError<string>> {
     try {
       const options: UploadApiOptions = {
-        unique_filename: false,
+        unique_filename: true,
         overwrite: true,
         public_id: userId,
         folder: "roadmap_ai/avatars",
