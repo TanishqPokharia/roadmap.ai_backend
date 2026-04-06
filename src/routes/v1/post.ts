@@ -23,13 +23,13 @@ const controller: IPostController = container.resolve("PostController");
 
 router.use(checkToken);
 router.get("/", controller.getPopularPosts);
-router.get("/:postId", controller.getPostDetails);
 router.get("/stats", controller.getUserPostStats);
 router.get("/time", controller.getPostsByTime);
 router.get("/title", controller.getPostsByTitle);
 router.get("/user", controller.getUserPostsMetaData);
 router.get("/user/:postId", controller.getUserPostRoadmap);
 router.get("/author/:authorId", controller.getPostsByAuthor);
+router.get("/:postId", controller.getPostDetails);
 router.patch("/like/:postId", controller.togglePostLike);
 router.post("/", uploader.single("bannerImage"), controller.uploadPost);
 
