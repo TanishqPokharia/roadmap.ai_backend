@@ -18,7 +18,107 @@ const bcrypt_1 = __importDefault(require("bcrypt"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const cloudinary_1 = require("cloudinary");
 const errors_1 = require("../../../utils/errors");
+const decode_google_id_token_1 = require("../../../utils/decode.google.id.token");
+const auth_provider_1 = __importDefault(require("../../../enums/auth.provider"));
+const crypto_1 = require("crypto");
+const hash_password_1 = __importDefault(require("../../../utils/hash.password"));
 let V1UserRepository = class V1UserRepository {
+    async login(emailOrIdToken, password) {
+        if (!password) {
+            return this.googleLogin(emailOrIdToken);
+        }
+        return this.defaultLogin(emailOrIdToken, password);
+    }
+    async googleLogin(idToken) {
+        try {
+            const decodedToken = await (0, decode_google_id_token_1.decodeGoogleIdToken)(idToken);
+            const { data: userInfo, error } = decodedToken;
+            if (error) {
+                return { data: null, error };
+            }
+            const { email, picture: avatar, username, googleId } = userInfo;
+            // check if user exists, also update their profile photo during login if changed
+            const userRecord = await user_1.default.findOne({ providerId: googleId });
+            // if user already exists just issue tokens
+            if (userRecord) {
+                const accessToken = (0, create_access_token_1.default)(userRecord._id.toString());
+                const refreshToken = (0, create_refresh_token_1.default)(userRecord._id.toString());
+                return {
+                    data: {
+                        accessToken,
+                        refreshToken
+                    },
+                    error: null
+                };
+            }
+            // create a server generated password to fullfill db constraints
+            const generatedPassword = (await (0, hash_password_1.default)((0, crypto_1.randomUUID)())).slice(0, 19);
+            const usernameLength = username.length;
+            // pad username to fit 8 digits
+            const paddedUsername = usernameLength < 8 ? `${username}${(0, crypto_1.randomUUID)()}`.slice(0, 10) : username;
+            // otherwise create the user and then return tokens
+            const newUserRecord = await user_1.default.insertOne({
+                provider: auth_provider_1.default.google,
+                providerId: googleId,
+                email,
+                username: paddedUsername,
+                avatar,
+                password: generatedPassword,
+            });
+            const accessToken = (0, create_access_token_1.default)(newUserRecord._id.toString());
+            const refreshToken = (0, create_refresh_token_1.default)(newUserRecord._id.toString());
+            return {
+                data: {
+                    accessToken,
+                    refreshToken
+                },
+                error: null
+            };
+        }
+        catch (error) {
+            logger_1.logger.error(error);
+            return {
+                error: error,
+                data: null
+            };
+        }
+    }
+    ;
+    async defaultLogin(email, password) {
+        try {
+            const user = await user_1.default.findOne({ email }, "_id email password").exec();
+            if (!user) {
+                return {
+                    data: null,
+                    error: new errors_1.NotFoundError("User not found"),
+                };
+            }
+            const isCorrectPassword = await bcrypt_1.default.compare(password, user.password);
+            if (!isCorrectPassword) {
+                return {
+                    data: null,
+                    error: new errors_1.ValidationError("Incorrect password"),
+                };
+            }
+            const accessToken = (0, create_access_token_1.default)(user._id.toString());
+            const refreshToken = (0, create_refresh_token_1.default)(user._id.toString());
+            return {
+                data: {
+                    accessToken,
+                    refreshToken,
+                },
+                error: null,
+            };
+        }
+        catch (error) {
+            logger_1.logger.error(error, "Error during login");
+            return {
+                data: null,
+                error: new errors_1.DatabaseError(`Login failed: ${error.message}`),
+            };
+        }
+    }
+    ;
     async signUp(username, email, password) {
         try {
             // search if email already registered
@@ -61,40 +161,6 @@ let V1UserRepository = class V1UserRepository {
             return {
                 error: new errors_1.DatabaseError(`Failed to create user: ${error.message}`),
                 data: null,
-            };
-        }
-    }
-    async login(email, password) {
-        try {
-            const user = await user_1.default.findOne({ email }, "_id email password").exec();
-            if (!user) {
-                return {
-                    data: null,
-                    error: new errors_1.NotFoundError("User not found"),
-                };
-            }
-            const isCorrectPassword = await bcrypt_1.default.compare(password, user.password);
-            if (!isCorrectPassword) {
-                return {
-                    data: null,
-                    error: new errors_1.ValidationError("Incorrect password"),
-                };
-            }
-            const accessToken = (0, create_access_token_1.default)(user._id.toString());
-            const refreshToken = (0, create_refresh_token_1.default)(user._id.toString());
-            return {
-                data: {
-                    accessToken,
-                    refreshToken,
-                },
-                error: null,
-            };
-        }
-        catch (error) {
-            logger_1.logger.error(error, "Error during login");
-            return {
-                data: null,
-                error: new errors_1.DatabaseError(`Login failed: ${error.message}`),
             };
         }
     }
@@ -167,18 +233,20 @@ let V1UserRepository = class V1UserRepository {
     }
     async getUserDetails(userId) {
         try {
-            const user = await user_1.default.findById(userId, "username email avatar").exec();
+            const user = await user_1.default.findById(userId, "username email avatar createdAt").exec();
             if (!user) {
                 return {
                     data: null,
                     error: new errors_1.NotFoundError("User not found"),
                 };
             }
+            const { username, email, avatar: avatarUrl, createdAt } = user;
             return {
                 data: {
-                    username: user.username,
-                    email: user.email,
-                    avatarUrl: user.avatar,
+                    username,
+                    email,
+                    avatarUrl,
+                    createdAt: createdAt.toISOString()
                 },
                 error: null,
             };

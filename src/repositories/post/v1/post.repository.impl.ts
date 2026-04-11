@@ -74,7 +74,6 @@ class V1PostRepository implements IPostRepository {
 
       // preserve the roadmap from being removed during toJson
       const fullPost = post.toObject();
-      delete fullPost._id;
       const data: IPostDetails = {
         post: fullPost,
         isSaved

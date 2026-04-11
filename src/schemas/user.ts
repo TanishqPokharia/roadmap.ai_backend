@@ -38,13 +38,32 @@ const userSchema = new mongoose.Schema<UserDocument>({
   },
   createdAt: {
     type: Date,
-    default: Date.now,
+    default: Date.now(),
     required: true,
   },
   avatar: {
     type: String,
     default: null,
   },
+  provider: {
+    type: String,
+    required: true,
+    default: "default",
+    validate: {
+      validator: (val: string) => {
+        const validProviders = ["default", "google"];
+        if (validProviders.includes(val)) return true;
+        return false;
+      },
+      message: (props: ValidatorProps) => {
+        return `${props.value} is not a valid provider`;
+      }
+    }
+  },
+  providerId: {
+    type: String,
+    default: null,
+  }
 });
 
 userSchema.set("toJSON", {

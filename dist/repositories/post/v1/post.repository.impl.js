@@ -71,7 +71,6 @@ let V1PostRepository = class V1PostRepository {
             const isSaved = savedRoadmapId !== null;
             // preserve the roadmap from being removed during toJson
             const fullPost = post.toObject();
-            delete fullPost._id;
             const data = {
                 post: fullPost,
                 isSaved

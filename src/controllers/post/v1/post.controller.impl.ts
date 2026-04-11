@@ -11,7 +11,7 @@ class V1PostController implements IPostController {
   constructor(@inject("PostRepository") private repo: IPostRepository) { }
 
   getUserPostStats = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    const userId = req.token;
+    const userId = req.token!;
     const { data, error } = await this.repo.getUserPostStats(userId.toString());
     if (error) {
       next(error);

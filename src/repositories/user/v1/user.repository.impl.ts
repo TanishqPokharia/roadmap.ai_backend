@@ -14,8 +14,124 @@ import {
   UploadApiResponse,
 } from "cloudinary";
 import { NotFoundError, ValidationError as TokenValidationError, DatabaseError, ExternalServiceError } from "../../../utils/errors";
+import { decodeGoogleIdToken } from "../../../utils/decode.google.id.token";
+import AuthProvider from "../../../enums/auth.provider";
+import { randomInt, randomUUID } from "crypto";
+import hashPassword from "../../../utils/hash.password";
 @injectable()
 class V1UserRepository implements IUserRepository {
+  login(email: string, password: string): Promise<DataOrError<AuthResponse>>;
+  login(googleIdToken: string): Promise<DataOrError<AuthResponse>>;
+
+  async login(emailOrIdToken: string, password?: string): Promise<DataOrError<AuthResponse>> {
+    if (!password) {
+      return this.googleLogin(emailOrIdToken);
+    }
+    return this.defaultLogin(emailOrIdToken, password);
+  }
+
+  private async googleLogin(idToken: string): Promise<DataOrError<AuthResponse>> {
+    try {
+      const decodedToken = await decodeGoogleIdToken(idToken);
+      const { data: userInfo, error } = decodedToken;
+      if (error) {
+        return { data: null, error };
+      }
+      const {
+        email,
+        picture: avatar,
+        username,
+        googleId
+      } = userInfo!;
+
+      // check if user exists, also update their profile photo during login if changed
+      const userRecord = await User.findOne({ providerId: googleId });
+
+      // if user already exists just issue tokens
+      if (userRecord) {
+        const accessToken = createAccessToken(userRecord._id.toString());
+        const refreshToken = createRefreshToken(userRecord._id.toString());
+        return {
+          data: {
+            accessToken,
+            refreshToken
+          },
+          error: null
+        };
+      }
+
+      // create a server generated password to fullfill db constraints
+      const generatedPassword = (await hashPassword(randomUUID())).slice(0, 19);
+      const usernameLength = username.length;
+
+      // pad username to fit 8 digits
+      const paddedUsername = usernameLength < 8 ? `${username}${randomUUID()}`.slice(0, 10) : username;
+
+      // otherwise create the user and then return tokens
+      const newUserRecord = await User.insertOne({
+        provider: AuthProvider.google,
+        providerId: googleId,
+        email,
+        username: paddedUsername,
+        avatar,
+        password: generatedPassword,
+      });
+
+      const accessToken = createAccessToken(newUserRecord._id.toString());
+      const refreshToken = createRefreshToken(newUserRecord._id.toString());
+      return {
+        data: {
+          accessToken,
+          refreshToken
+        },
+        error: null
+      }
+
+    } catch (error) {
+      logger.error(error);
+      return {
+        error: error as Error,
+        data: null
+      }
+    }
+  };
+  private async defaultLogin(email: string, password: string): Promise<DataOrError<AuthResponse>> {
+    try {
+      const user = await User.findOne({ email }, "_id email password").exec();
+      if (!user) {
+        return {
+          data: null,
+          error: new NotFoundError("User not found"),
+        };
+      }
+
+      const isCorrectPassword = await bcrypt.compare(password, user.password);
+
+      if (!isCorrectPassword) {
+        return {
+          data: null,
+          error: new TokenValidationError("Incorrect password"),
+        };
+      }
+      const accessToken = createAccessToken(user._id.toString());
+      const refreshToken = createRefreshToken(user._id.toString());
+      return {
+        data: {
+          accessToken,
+          refreshToken,
+        },
+        error: null,
+      };
+    } catch (error) {
+      logger.error(error, "Error during login");
+      return {
+        data: null,
+        error: new DatabaseError(`Login failed: ${(error as Error).message}`),
+      };
+    }
+  };
+
+
   async signUp(
     username: string,
     email: string,
@@ -70,44 +186,7 @@ class V1UserRepository implements IUserRepository {
       };
     }
   }
-  async login(
-    email: string,
-    password: string
-  ): Promise<DataOrError<AuthResponse>> {
-    try {
-      const user = await User.findOne({ email }, "_id email password").exec();
-      if (!user) {
-        return {
-          data: null,
-          error: new NotFoundError("User not found"),
-        };
-      }
 
-      const isCorrectPassword = await bcrypt.compare(password, user.password);
-
-      if (!isCorrectPassword) {
-        return {
-          data: null,
-          error: new TokenValidationError("Incorrect password"),
-        };
-      }
-      const accessToken = createAccessToken(user._id.toString());
-      const refreshToken = createRefreshToken(user._id.toString());
-      return {
-        data: {
-          accessToken,
-          refreshToken,
-        },
-        error: null,
-      };
-    } catch (error) {
-      logger.error(error, "Error during login");
-      return {
-        data: null,
-        error: new DatabaseError(`Login failed: ${(error as Error).message}`),
-      };
-    }
-  }
 
   async refresh(refreshToken: string): Promise<DataOrError<AuthResponse>> {
     try {
@@ -187,20 +266,22 @@ class V1UserRepository implements IUserRepository {
     }
   }
 
-  async getUserDetails(userId: string): Promise<DataOrError<{ username: string; email: string; avatarUrl?: string | null; }>> {
+  async getUserDetails(userId: string): Promise<DataOrError<UserDetails>> {
     try {
-      const user = await User.findById(userId, "username email avatar").exec();
+      const user = await User.findById(userId, "username email avatar createdAt").exec();
       if (!user) {
         return {
           data: null,
           error: new NotFoundError("User not found"),
         };
       }
+      const { username, email, avatar: avatarUrl, createdAt } = user;
       return {
         data: {
-          username: user.username,
-          email: user.email,
-          avatarUrl: user.avatar,
+          username,
+          email,
+          avatarUrl,
+          createdAt: createdAt.toISOString()
         },
         error: null,
       };

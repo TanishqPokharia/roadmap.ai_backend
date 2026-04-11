@@ -8,6 +8,8 @@ interface IUser {
   password: string;
   createdAt: Date;
   avatar: string | null;
+  provider: string; // default, google
+  providerId: string;
 }
 
 export default IUser;

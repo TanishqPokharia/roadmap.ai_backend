@@ -67,26 +67,25 @@ let V1UserController = class V1UserController {
             }
         };
         this.login = async (req, res, next) => {
-            const { email, password } = req.body;
-            const loginSchema = v4_1.z.object({
-                email: v4_1.z.email("Invalid email format"),
-                password: v4_1.z
-                    .string()
-                    .min(8, "Password must be at least 8 characters long"),
-            });
-            const validation = loginSchema.safeParse({
-                email,
-                password,
-            });
-            if (!validation.success) {
-                next(new errors_1.ValidationError(v4_1.z.prettifyError(validation.error)));
-                return;
+            const { email, password, googleIdToken } = req.body;
+            // retreive tokens based on type of login
+            let tokens;
+            if (googleIdToken) {
+                const { data, error } = await this.googleLogin(googleIdToken);
+                if (error) {
+                    next(error);
+                    return;
+                }
+                ;
+                tokens = data;
             }
-            const validated = validation.data;
-            const { data: tokens, error } = await this.repo.login(validated.email, validated.password);
-            if (error) {
-                next(error);
-                return;
+            else {
+                const { data, error } = await this.defaultLogin(email, password);
+                if (error) {
+                    next(error);
+                    return;
+                }
+                tokens = data;
             }
             const { accessToken, refreshToken } = tokens;
             if (req.headers['x-client-os'] === "android") {
@@ -172,6 +171,51 @@ let V1UserController = class V1UserController {
             }
             res.status(200).json(data);
         };
+    }
+    async googleLogin(googleIdToken) {
+        const loginSchema = v4_1.z.object({
+            googleIdToken: v4_1.z.string().nonoptional("Google id token required for google sign in")
+        });
+        const validation = loginSchema.safeParse({ googleIdToken });
+        if (!validation.success) {
+            return {
+                data: null,
+                error: new errors_1.ValidationError(v4_1.z.prettifyError(validation.error))
+            };
+        }
+        const validated = validation.data;
+        const { data: tokens, error } = await this.repo.login(validated.googleIdToken);
+        if (error) {
+            return { data: null, error };
+        }
+        return { data: tokens, error: null };
+    }
+    async defaultLogin(email, password) {
+        const loginSchema = v4_1.z.object({
+            email: v4_1.z.email("Invalid email format"),
+            password: v4_1.z
+                .string()
+                .min(8, "Password must be at least 8 characters long"),
+        });
+        const validation = loginSchema.safeParse({
+            email,
+            password,
+        });
+        if (!validation.success) {
+            return {
+                data: null,
+                error: new errors_1.ValidationError(v4_1.z.prettifyError(validation.error))
+            };
+        }
+        const validated = validation.data;
+        const { data: tokens, error } = await this.repo.login(validated.email, validated.password);
+        if (error) {
+            return {
+                data: null,
+                error
+            };
+        }
+        return { data: tokens, error: null };
     }
 };
 V1UserController = __decorate([

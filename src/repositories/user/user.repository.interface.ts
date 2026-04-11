@@ -7,8 +7,9 @@ export default interface IUserRepository {
     email: string,
     password: string
   ): Promise<DataOrError<AuthResponse>>;
-  login(email: string, password: string): Promise<DataOrError<AuthResponse>>;
+  login(email: string, password: string): Promise<DataOrError<AuthResponse>>; // default login
+  login(googleIdToken: string): Promise<DataOrError<AuthResponse>>; // google OAuth login
   refresh(refreshToken: string): Promise<DataOrError<AuthResponse>>;
   uploadAvatar(userId: string, avatar: Buffer): Promise<DataOrError<string>>;
-  getUserDetails(userId: string): Promise<DataOrError<{ username: string; email: string; avatarUrl?: string | null }>>;
+  getUserDetails(userId: string): Promise<DataOrError<UserDetails>>;
 }

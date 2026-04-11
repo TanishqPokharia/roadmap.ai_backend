@@ -5,6 +5,8 @@ import { inject, injectable } from "tsyringe";
 import { z } from "zod/v4";
 import { logger } from "../../../utils/logger";
 import { ValidationError } from "../../../utils/errors";
+import AuthResponse from "../../../models/auth.response";
+import DataOrError from "../../../utils/data.or.error";
 
 @injectable()
 class V1UserController implements IUserController {
@@ -82,8 +84,27 @@ class V1UserController implements IUserController {
 
 
   };
-  login = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    const { email, password } = req.body;
+
+  private async googleLogin(googleIdToken: string): Promise<DataOrError<AuthResponse>> {
+    const loginSchema = z.object({
+      googleIdToken: z.string().nonoptional("Google id token required for google sign in")
+    });
+    const validation = loginSchema.safeParse({ googleIdToken });
+    if (!validation.success) {
+      return {
+        data: null,
+        error: new ValidationError(z.prettifyError(validation.error))
+      };
+    }
+    const validated = validation.data;
+    const { data: tokens, error } = await this.repo.login(validated.googleIdToken);
+    if (error) {
+      return { data: null, error };
+    }
+    return { data: tokens, error: null };
+  }
+
+  private async defaultLogin(email: string, password: string): Promise<DataOrError<AuthResponse>> {
     const loginSchema = z.object({
       email: z.email("Invalid email format"),
       password: z
@@ -95,8 +116,10 @@ class V1UserController implements IUserController {
       password,
     });
     if (!validation.success) {
-      next(new ValidationError(z.prettifyError(validation.error)));
-      return;
+      return {
+        data: null,
+        error: new ValidationError(z.prettifyError(validation.error))
+      }
     }
     const validated = validation.data;
 
@@ -105,9 +128,35 @@ class V1UserController implements IUserController {
       validated.password
     );
     if (error) {
-      next(error);
-      return;
+      return {
+        data: null,
+        error
+      };
     }
+    return { data: tokens, error: null };
+  }
+
+  login = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    const { email, password, googleIdToken } = req.body;
+
+    // retreive tokens based on type of login
+    let tokens: AuthResponse;
+    if (googleIdToken) {
+      const { data, error } = await this.googleLogin(googleIdToken);
+      if (error) {
+        next(error);
+        return;
+      };
+      tokens = data!;
+    } else {
+      const { data, error } = await this.defaultLogin(email, password);
+      if (error) {
+        next(error);
+        return;
+      }
+      tokens = data!;
+    }
+
     const { accessToken, refreshToken } = tokens!;
 
 
@@ -140,7 +189,7 @@ class V1UserController implements IUserController {
         next(new ValidationError('Invalid refresh token format'));
         return;
       }
-      refreshToken = authHeader.at(1);
+      refreshToken = authHeader.at(1)!;
     } else {
       if (!req.signedCookies || !req.signedCookies.tokens || !req.signedCookies.tokens.refreshToken) {
         next(new ValidationError("Refresh token is required"));
@@ -191,7 +240,7 @@ class V1UserController implements IUserController {
   };
 
   uploadAvatar = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    const userId = req.token;
+    const userId = req.token!;
     if (!req.file) {
       next(new ValidationError("Avatar file is required"));
       return;
@@ -220,7 +269,7 @@ class V1UserController implements IUserController {
   };
 
   getUserDetails = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    const userId = req.token;
+    const userId = req.token!;
     const { data, error } = await this.repo.getUserDetails(userId.toString());
     if (error) {
       next(error);
