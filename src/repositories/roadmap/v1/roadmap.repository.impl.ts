@@ -4,14 +4,15 @@ import {
   HarmCategory,
 } from "@google/genai";
 import { injectable } from "tsyringe";
-import { logger } from "../../../utils/logger";
-import IRoadmapRepository from "../roadmap.repository.interface";
-import IRoadmap from "../../../models/roadmap";
-import Roadmap from "../../../schemas/roadmap";
-import responseSchema from "../../../utils/generated.roadmap.schema";
-import { NotFoundError, AccessDeniedError, DatabaseError, ExternalServiceError } from "../../../utils/errors";
-import DataOrError from "../../../utils/data.or.error";
-import Post from "../../../schemas/post";
+import IRoadmapRepository from "../roadmap.repository.interface.js";
+import IRoadmap from "../../../models/roadmap.js";
+import DataOrError from "../../../utils/data.or.error.js";
+import Roadmap from "../../../schemas/roadmap.js";
+import { AccessDeniedError, DatabaseError, ExternalServiceError, NotFoundError } from "../../../utils/errors.js";
+import { logger } from "../../../utils/logger.js";
+import IRoadmapMetaData from "../../../models/roadmap.metadata.js";
+import responseSchema from "../../../utils/generated.roadmap.schema.js";
+
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_KEY });
 
@@ -23,7 +24,7 @@ class V1RoadmapRepository implements IRoadmapRepository {
       // Ensure all subgoals have a status field with default values
       const processedGoals = roadmap.goals.map(goal => ({
         ...goal,
-        subgoals: goal.subgoals.map(subgoal => ({
+        subgoals: goal.subgoals.map((subgoal: any) => ({
           ...subgoal,
           status: subgoal.status || { completed: false, completedAt: null }
         }))
@@ -93,16 +94,16 @@ class V1RoadmapRepository implements IRoadmapRepository {
         .exec();
 
       // process roadmaps into roadmap meta data
-      const roadmapsMetaData: IRoadmapMetaData[] = roadmaps.map(r => {
+      const roadmapsMetaData: IRoadmapMetaData[] = roadmaps.map((r: any) => {
         return {
           id: r._id.toString(),
           title: r.title,
           description: r.description,
           postId: r.postId ? r.postId.toString() : null,
           goalsCount: r.goals.length,
-          subgoalsCount: r.goals.reduce((acc, goal) => acc + goal.subgoals.length, 0),
-          completedSubgoals: r.goals.reduce((acc, goal) => {
-            const completedSubgoals = goal.subgoals.filter(sg => sg.status.completed).length;
+          subgoalsCount: r.goals.reduce((acc: any, goal: any) => acc + goal.subgoals.length, 0),
+          completedSubgoals: r.goals.reduce((acc: any, goal: any) => {
+            const completedSubgoals = goal.subgoals.filter((sg: any) => sg.status.completed).length;
             return acc + completedSubgoals;
           }, 0)
         };
@@ -129,7 +130,7 @@ class V1RoadmapRepository implements IRoadmapRepository {
       // Ensure all subgoals have a status field with default values
       const processedGoals = roadmap.goals.map(goal => ({
         ...goal,
-        subgoals: goal.subgoals.map(subgoal => ({
+        subgoals: goal.subgoals.map((subgoal: any) => ({
           ...subgoal,
           status: subgoal.status || { completed: false, completedAt: null }
         }))
@@ -182,11 +183,11 @@ class V1RoadmapRepository implements IRoadmapRepository {
         return { data: null, error: new NotFoundError("Roadmap not found") };
       }
 
-      const goal = roadmap.goals.find((g) => g._id.toString() === goalId);
+      const goal = roadmap.goals.find((g: any) => g._id.toString() === goalId);
       if (!goal) {
         return { data: null, error: new NotFoundError("Goal not found") };
       }
-      const subgoal = goal.subgoals.find((sg) => sg._id.toString() === subgoalId);
+      const subgoal = goal.subgoals.find((sg: any) => sg._id.toString() === subgoalId);
       if (!subgoal) {
         return { data: null, error: new NotFoundError("Subgoal not found") };
       }

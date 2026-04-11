@@ -1,10 +1,5 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
-const logger_1 = require("../utils/logger");
+import jwt from "jsonwebtoken";
+import { logger } from "../utils/logger.js";
 const checkToken = async (req, res, next) => {
     if (req.headers['x-client-os'] === 'android') {
         mobileHandler(req, res, next);
@@ -17,7 +12,7 @@ const webHandler = (req, res, next) => {
         // check cookies for token
         const tokens = req.signedCookies.tokens;
         if (!tokens) {
-            logger_1.logger.warn("No tokens found in signed cookies");
+            logger.warn("No tokens found in signed cookies");
             res.status(401).json({ error: "Unauthorized" });
             return;
         }
@@ -26,7 +21,7 @@ const webHandler = (req, res, next) => {
             res.status(401).json({ error: "Unauthorized" });
             return;
         }
-        const token = jsonwebtoken_1.default.verify(accessToken, process.env.ACCESS_TOKEN_SECRET);
+        const token = jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET);
         if (typeof token === "string") {
             res.status(401).json({ error: "Unauthorized: Invalid token format" });
             return;
@@ -36,23 +31,22 @@ const webHandler = (req, res, next) => {
         next();
     }
     catch (error) {
-        logger_1.logger.error(error, "Error verifying token:");
-        if (error instanceof jsonwebtoken_1.default.JsonWebTokenError) {
+        logger.error(error, "Error verifying token:");
+        if (error instanceof jwt.JsonWebTokenError) {
             res.status(401).json({ error: "Unauthorized: Invalid token" });
             return;
         }
     }
 };
 const mobileHandler = (req, res, next) => {
-    var _a;
     try {
-        const auth = (_a = req.headers.authorization) === null || _a === void 0 ? void 0 : _a.split(" ");
+        const auth = req.headers.authorization?.split(" ");
         if (!auth || auth.at(0) !== "Bearer" || !auth.at(1)) {
             res.status(401).json({ error: "Unauthorized" });
             return;
         }
         const tokenString = auth[1];
-        const token = jsonwebtoken_1.default.verify(tokenString, process.env.ACCESS_TOKEN_SECRET, { algorithms: ["HS256"] });
+        const token = jwt.verify(tokenString, process.env.ACCESS_TOKEN_SECRET, { algorithms: ["HS256"] });
         if (typeof token === "string") {
             res.status(401).json({ error: "Unauthorized: Invalid token format" });
             return;
@@ -62,12 +56,12 @@ const mobileHandler = (req, res, next) => {
         next();
     }
     catch (error) {
-        logger_1.logger.error(error, "Error verifying token:");
-        if (error instanceof jsonwebtoken_1.default.JsonWebTokenError) {
+        logger.error(error, "Error verifying token:");
+        if (error instanceof jwt.JsonWebTokenError) {
             res.status(401).json({ error: "Unauthorized: Invalid token" });
             return;
         }
-        if (error instanceof jsonwebtoken_1.default.TokenExpiredError) {
+        if (error instanceof jwt.TokenExpiredError) {
             res.status(401).json({ error: "Unauthorized: Token expired" });
             return;
         }
@@ -75,4 +69,4 @@ const mobileHandler = (req, res, next) => {
         return;
     }
 };
-exports.default = checkToken;
+export default checkToken;

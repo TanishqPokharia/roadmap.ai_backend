@@ -1,5 +1,5 @@
-import pino from "pino";
-import pinoHttp from "pino-http";
+import { pino } from "pino";
+import { pinoHttp } from "pino-http";
 
 // Configure logger based on environment
 const logger = pino(

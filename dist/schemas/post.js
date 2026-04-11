@@ -1,13 +1,8 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-const mongoose_1 = __importDefault(require("mongoose"));
-const roadmap_1 = require("./roadmap");
-const postSchema = new mongoose_1.default.Schema({
+import mongoose from "mongoose";
+import { roadmapSchema } from "./roadmap.js";
+const postSchema = new mongoose.Schema({
     roadmap: {
-        type: roadmap_1.roadmapSchema,
+        type: roadmapSchema,
         required: true,
     },
     likes: {
@@ -23,7 +18,7 @@ const postSchema = new mongoose_1.default.Schema({
         default: 0
     },
     authorId: {
-        type: mongoose_1.default.Schema.Types.ObjectId,
+        type: mongoose.Schema.Types.ObjectId,
         index: true,
         required: true,
         ref: "User",
@@ -66,5 +61,5 @@ postSchema.set("toJSON", {
     }
 });
 postSchema.set("toObject", { virtuals: true });
-const Post = mongoose_1.default.model("Post", postSchema);
-exports.default = Post;
+const Post = mongoose.model("Post", postSchema);
+export default Post;

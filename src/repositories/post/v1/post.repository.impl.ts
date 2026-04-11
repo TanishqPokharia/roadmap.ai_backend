@@ -1,22 +1,25 @@
-import { injectable } from "tsyringe";
-import IPost from "../../../models/post";
-import IRoadmap from "../../../models/roadmap";
-import Likes from "../../../schemas/likes";
-import Post from "../../../schemas/post";
-import DataOrError from "../../../utils/data.or.error";
-import { logger } from "../../../utils/logger";
-import IPostRepository, { PostTime } from "../post.repository.interface";
-import User from "../../../schemas/user";
-import Views from "../../../schemas/views";
-import { NotFoundError, DatabaseError } from "../../../utils/errors";
+
 import {
   v2 as cloudinary,
   UploadApiOptions,
   UploadApiResponse,
 } from "cloudinary";
-import Roadmap from "../../../schemas/roadmap";
+import { injectable } from "tsyringe";
+import IPostRepository, { PostTime } from "../post.repository.interface.js";
+import DataOrError from "../../../utils/data.or.error.js";
+import IUserPostStats from "../../../models/user.posts.stats.js";
+import Post from "../../../schemas/post.js";
+import { logger } from "../../../utils/logger.js";
+import { DatabaseError, NotFoundError } from "../../../utils/errors.js";
+import { IPostDetails } from "../../../models/post.details.js";
+import Roadmap from "../../../schemas/roadmap.js";
+import IPost from "../../../models/post.js";
+import Likes from "../../../schemas/likes.js";
+import IRoadmap from "../../../models/roadmap.js";
+import User from "../../../schemas/user.js";
 import mongoose from "mongoose";
-import { IPostDetails } from "../../../models/post.details";
+import Views from "../../../schemas/views.js";
+
 
 @injectable()
 class V1PostRepository implements IPostRepository {

@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
-import { AccessDeniedError, NotFoundError, ValidationError } from "../utils/errors";
-import { logger } from "../utils/logger";
+import { AccessDeniedError, NotFoundError, ValidationError } from "../utils/errors.js";
+import { logger } from "../utils/logger.js";
 
 const errorHandler = (error: Error, req: Request, res: Response, next: NextFunction) => {
     // Log all errors for debugging

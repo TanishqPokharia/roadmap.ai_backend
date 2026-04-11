@@ -1,11 +1,3 @@
-import AuthResponse from "../../../models/auth.response";
-import User from "../../../schemas/user";
-import DataOrError from "../../../utils/data.or.error";
-import IUserRepository from "../user.repository.interface";
-import createAccessToken from "../../../utils/create.access.token";
-import createRefreshToken from "../../../utils/create.refresh.token";
-import { injectable } from "tsyringe";
-import { logger } from "../../../utils/logger";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import {
@@ -13,11 +5,21 @@ import {
   UploadApiOptions,
   UploadApiResponse,
 } from "cloudinary";
-import { NotFoundError, ValidationError as TokenValidationError, DatabaseError, ExternalServiceError } from "../../../utils/errors";
-import { decodeGoogleIdToken } from "../../../utils/decode.google.id.token";
-import AuthProvider from "../../../enums/auth.provider";
-import { randomInt, randomUUID } from "crypto";
-import hashPassword from "../../../utils/hash.password";
+import { NotFoundError, ValidationError as TokenValidationError, DatabaseError, ExternalServiceError } from "../../../utils/errors.js";
+import { injectable } from "tsyringe";
+import IUserRepository from "../user.repository.interface.js";
+import DataOrError from "../../../utils/data.or.error.js";
+import AuthResponse from "../../../models/auth.response.js";
+import { decodeGoogleIdToken } from "../../../utils/decode.google.id.token.js";
+import User from "../../../schemas/user.js";
+import createAccessToken from "../../../utils/create.access.token.js";
+import createRefreshToken from "../../../utils/create.refresh.token.js";
+import hashPassword from "../../../utils/hash.password.js";
+import { randomUUID } from "crypto";
+import AuthProvider from "../../../enums/auth.provider.js";
+import { logger } from "../../../utils/logger.js";
+import UserDetails from "../../../types/user.details.js";
+
 @injectable()
 class V1UserRepository implements IUserRepository {
   login(email: string, password: string): Promise<DataOrError<AuthResponse>>;

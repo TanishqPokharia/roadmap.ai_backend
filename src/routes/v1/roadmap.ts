@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { container } from "tsyringe";
-import IRoadmapController from "../../controllers/roadmap/roadmap.controller.interface";
-import checkToken from "../../middlewares/check.token";
+import IRoadmapController from "../../controllers/roadmap/roadmap.controller.interface.js";
+import checkToken from "../../middlewares/check.token.js";
 
 const router = Router();
 

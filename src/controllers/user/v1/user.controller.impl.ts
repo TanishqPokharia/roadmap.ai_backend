@@ -1,12 +1,12 @@
 import { CookieOptions, NextFunction, Request, Response } from "express";
-import IUserController from "../user.controller.interface";
-import IUserRepository from "../../../repositories/user/user.repository.interface";
+import IUserController from "../user.controller.interface.js";
+import IUserRepository from "../../../repositories/user/user.repository.interface.js";
 import { inject, injectable } from "tsyringe";
 import { z } from "zod/v4";
-import { logger } from "../../../utils/logger";
-import { ValidationError } from "../../../utils/errors";
-import AuthResponse from "../../../models/auth.response";
-import DataOrError from "../../../utils/data.or.error";
+import { logger } from "../../../utils/logger.js";
+import { ValidationError } from "../../../utils/errors.js";
+import AuthResponse from "../../../models/auth.response.js";
+import DataOrError from "../../../utils/data.or.error.js";
 
 @injectable()
 class V1UserController implements IUserController {

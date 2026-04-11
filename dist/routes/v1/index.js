@@ -1,14 +1,9 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-const express_1 = require("express");
-const roadmap_1 = __importDefault(require("./roadmap"));
-const post_1 = __importDefault(require("./post"));
-const user_1 = __importDefault(require("./user"));
-const router = (0, express_1.Router)();
-router.use("/roadmap", roadmap_1.default);
-router.use("/post", post_1.default);
-router.use("/auth", user_1.default);
-exports.default = router;
+import { Router } from "express";
+import roadmapRouter from "./roadmap.js";
+import postRouter from "./post.js";
+import userRouter from "./user.js";
+const router = Router();
+router.use("/roadmap", roadmapRouter);
+router.use("/post", postRouter);
+router.use("/auth", userRouter);
+export default router;

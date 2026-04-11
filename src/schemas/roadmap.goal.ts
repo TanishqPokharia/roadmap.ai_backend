@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
-import IRoadmapGoal from "../models/roadmap.goal";
-import { roadmapSchema } from "./roadmap";
-import roadmapSubgoalSchema from "./roadmap.subgoal";
+import IRoadmapGoal from "../models/roadmap.goal.js";
+import { roadmapSchema } from "./roadmap.js";
+import roadmapSubgoalSchema from "./roadmap.subgoal.js";
 
 type RoadmapGoalDocument = mongoose.Document & IRoadmapGoal;
 

@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
-import { roadmapSchema } from "./roadmap";
-import IPost from "../models/post";
+import { roadmapSchema } from "./roadmap.js";
+import IPost from "../models/post.js";
 
 type PostDocument = mongoose.Document & IPost;
 

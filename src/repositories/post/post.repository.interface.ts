@@ -1,7 +1,9 @@
-import IPost from "../../models/post";
-import { IPostDetails } from "../../models/post.details";
-import IRoadmap from "../../models/roadmap";
-import DataOrError from "../../utils/data.or.error";
+import { IPostDetails } from "../../models/post.details.js";
+import IPost from "../../models/post.js";
+import IRoadmap from "../../models/roadmap.js";
+import IUserPostStats from "../../models/user.posts.stats.js";
+import DataOrError from "../../utils/data.or.error.js";
+
 
 export default interface IPostRepository {
   getPopularPosts(userId: string, limit: number, skip: number): Promise<DataOrError<IPost[]>>;

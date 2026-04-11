@@ -1,9 +1,9 @@
 import { Router } from "express";
-import roadmapRouter from "./roadmap";
-import postRouter from "./post";
-import userRouter from "./user";
-import checkToken from "../../middlewares/check.token";
-import errorHandler from "../../middlewares/error.handler";
+import roadmapRouter from "./roadmap.js";
+import postRouter from "./post.js";
+import userRouter from "./user.js";
+import checkToken from "../../middlewares/check.token.js";
+import errorHandler from "../../middlewares/error.handler.js";
 const router = Router();
 
 router.use("/roadmap", roadmapRouter);

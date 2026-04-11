@@ -1,11 +1,8 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.decodeGoogleIdToken = void 0;
-const google_auth_library_1 = require("google-auth-library");
-const decodeGoogleIdToken = async (idToken) => {
+import { OAuth2Client } from "google-auth-library";
+export const decodeGoogleIdToken = async (idToken) => {
     try {
         const env = process.env;
-        const client = new google_auth_library_1.OAuth2Client({
+        const client = new OAuth2Client({
             client_id: env.GOOGLE_CLIENT_ID,
         });
         const ticket = await client.verifyIdToken({
@@ -24,7 +21,7 @@ const decodeGoogleIdToken = async (idToken) => {
             data: {
                 username: name,
                 email,
-                picture: picture !== null && picture !== void 0 ? picture : null,
+                picture: picture ?? null,
                 googleId
             },
             error: null
@@ -34,4 +31,3 @@ const decodeGoogleIdToken = async (idToken) => {
         return { error: error, data: null };
     }
 };
-exports.decodeGoogleIdToken = decodeGoogleIdToken;

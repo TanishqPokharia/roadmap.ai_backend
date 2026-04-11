@@ -1,7 +1,7 @@
 import { Router } from "express";
-import checkToken from "../../middlewares/check.token";
+import checkToken from "../../middlewares/check.token.js";
 import { container } from "tsyringe";
-import IPostController from '../../controllers/post/post.controller.interface';
+import IPostController from '../../controllers/post/post.controller.interface.js';
 import multer from "multer";
 
 const uploader = multer({

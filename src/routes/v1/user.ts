@@ -1,8 +1,8 @@
 import { Router } from "express";
 import { container } from "tsyringe";
-import IUserController from "../../controllers/user/user.controller.interface";
+import IUserController from "../../controllers/user/user.controller.interface.js";
 import multer from "multer";
-import checkToken from "../../middlewares/check.token";
+import checkToken from "../../middlewares/check.token.js";
 
 const uploader = multer({
   storage: multer.memoryStorage(),

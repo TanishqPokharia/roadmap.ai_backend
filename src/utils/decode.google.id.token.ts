@@ -1,5 +1,5 @@
 import { OAuth2Client } from "google-auth-library"
-import DataOrError from "./data.or.error";
+import DataOrError from "./data.or.error.js";
 
 export type GoogleOAuthInfo = {
     username: string;

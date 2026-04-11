@@ -3,3 +3,6 @@ interface IUserPostStats {
     totalLikes: number;
     totalViews: number;
 }
+
+
+export default IUserPostStats;

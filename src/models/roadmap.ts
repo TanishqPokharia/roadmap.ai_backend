@@ -1,5 +1,5 @@
 import { Types } from "mongoose";
-import IRoadmapGoal from "./roadmap.goal";
+import IRoadmapGoal from "./roadmap.goal.js";
 
 interface IRoadmap {
   _id: Types.ObjectId;

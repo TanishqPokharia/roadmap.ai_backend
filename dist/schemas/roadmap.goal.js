@@ -1,11 +1,6 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-const mongoose_1 = __importDefault(require("mongoose"));
-const roadmap_subgoal_1 = __importDefault(require("./roadmap.subgoal"));
-const roadmapGoalSchema = new mongoose_1.default.Schema({
+import mongoose from "mongoose";
+import roadmapSubgoalSchema from "./roadmap.subgoal.js";
+const roadmapGoalSchema = new mongoose.Schema({
     title: {
         type: String,
         required: true,
@@ -13,7 +8,7 @@ const roadmapGoalSchema = new mongoose_1.default.Schema({
         maxlength: 100,
     },
     subgoals: {
-        type: [roadmap_subgoal_1.default],
+        type: [roadmapSubgoalSchema],
         required: true,
         validate: {
             validator: function (v) {
@@ -30,4 +25,4 @@ roadmapGoalSchema.set("toJSON", {
         return ret;
     },
 });
-exports.default = roadmapGoalSchema;
+export default roadmapGoalSchema;

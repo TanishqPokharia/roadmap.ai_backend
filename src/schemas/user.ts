@@ -2,8 +2,8 @@ import mongoose, {
   CallbackWithoutResultAndOptionalError,
   ValidatorProps,
 } from "mongoose";
-import hashPassword from "../utils/hash.password";
-import IUser from "../models/user";
+import hashPassword from "../utils/hash.password.js";
+import IUser from "../models/user.js";
 
 export type UserDocument = mongoose.Document & IUser;
 

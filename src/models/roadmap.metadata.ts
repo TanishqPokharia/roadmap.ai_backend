@@ -7,3 +7,5 @@ interface IRoadmapMetaData {
     subgoalsCount: number;
     postId: string | null;
 }
+
+export default IRoadmapMetaData;

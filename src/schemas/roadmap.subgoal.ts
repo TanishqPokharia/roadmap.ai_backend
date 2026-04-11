@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import IRoadmapSubgoal from "../models/roadmap.subgoal";
+import IRoadmapSubgoal from "../models/roadmap.subgoal.js";
 
 type RoadmapSubgoalDocument = mongoose.Document & IRoadmapSubgoal;
 type RoadmapSubgoalStatusDocument = mongoose.Document & {

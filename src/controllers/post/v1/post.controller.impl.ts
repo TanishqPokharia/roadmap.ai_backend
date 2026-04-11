@@ -1,9 +1,9 @@
 import { inject, injectable } from "tsyringe";
-import IPostController from "../post.controller.interface";
+import IPostController from "../post.controller.interface.js";
 import { NextFunction, Request, Response } from "express";
-import IPostRepository from "../../../repositories/post/post.repository.interface";
+import IPostRepository from "../../../repositories/post/post.repository.interface.js";
 import { z } from "zod/v4";
-import { ValidationError } from "../../../utils/errors";
+import { ValidationError } from "../../../utils/errors.js";
 import { token } from "morgan";
 
 @injectable()

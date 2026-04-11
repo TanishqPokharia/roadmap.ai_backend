@@ -1,9 +1,9 @@
 import { NextFunction, Request, Response } from "express";
 import { inject, injectable } from "tsyringe";
-import IRoadmapController from "../roadmap.controller.interface";
-import IRoadmapRepository from "../../../repositories/roadmap/roadmap.repository.interface";
+import IRoadmapController from "../roadmap.controller.interface.js";
+import IRoadmapRepository from "../../../repositories/roadmap/roadmap.repository.interface.js";
 import { z } from "zod/v4";
-import { ValidationError } from "../../../utils/errors";
+import { ValidationError } from "../../../utils/errors.js";
 
 @injectable()
 class V1RoadmapController implements IRoadmapController {

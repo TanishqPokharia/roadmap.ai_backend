@@ -4,3 +4,5 @@ type UserDetails = {
     avatarUrl: string | null;
     createdAt: string;
 };
+
+export default UserDetails;

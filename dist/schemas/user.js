@@ -1,11 +1,6 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-const mongoose_1 = __importDefault(require("mongoose"));
-const hash_password_1 = __importDefault(require("../utils/hash.password"));
-const userSchema = new mongoose_1.default.Schema({
+import mongoose from "mongoose";
+import hashPassword from "../utils/hash.password.js";
+const userSchema = new mongoose.Schema({
     username: {
         type: String,
         required: true,
@@ -81,8 +76,8 @@ userSchema.set("toObject", {
     }
 });
 userSchema.pre("save", async function (next) {
-    this.password = await (0, hash_password_1.default)(this.password);
+    this.password = await hashPassword(this.password);
     next();
 });
-const User = mongoose_1.default.model("User", userSchema);
-exports.default = User;
+const User = mongoose.model("User", userSchema);
+export default User;

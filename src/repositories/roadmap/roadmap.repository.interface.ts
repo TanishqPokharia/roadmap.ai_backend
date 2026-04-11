@@ -1,6 +1,7 @@
-import { IPostDetails } from "../../models/post.details";
-import IRoadmap from "../../models/roadmap";
-import DataOrError from "../../utils/data.or.error";
+import IRoadmap from "../../models/roadmap.js";
+import IRoadmapMetaData from "../../models/roadmap.metadata.js";
+import DataOrError from "../../utils/data.or.error.js";
+
 
 export default interface IRoadmapRepository {
   generateRoadmap(topic: string): Promise<DataOrError<IRoadmap>>;

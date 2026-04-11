@@ -1,5 +1,7 @@
-import AuthResponse from "../../models/auth.response";
-import DataOrError from "../../utils/data.or.error";
+import AuthResponse from "../../models/auth.response.js";
+import UserDetails from "../../types/user.details.js";
+import DataOrError from "../../utils/data.or.error.js";
+
 
 export default interface IUserRepository {
   signUp(

@@ -1,12 +1,6 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-var _a;
-Object.defineProperty(exports, "__esModule", { value: true });
-const functions_1 = require("@vercel/functions");
-const mongoose_1 = __importDefault(require("mongoose"));
-const logger_1 = require("./utils/logger");
+import { attachDatabasePool } from "@vercel/functions";
+import mongoose from "mongoose";
+import { logger } from "./utils/logger.js";
 const options = {
     appName: "roadmap.ai",
     timeoutMS: 30000,
@@ -18,11 +12,14 @@ const options = {
     maxPoolSize: 10,
     retryReads: true,
 };
-mongoose_1.default.connect((_a = process.env.MONGODB_URI) !== null && _a !== void 0 ? _a : "", options).then((client) => {
-    (0, functions_1.attachDatabasePool)(client.connection.getClient());
-    logger_1.logger.info("Connected to db");
-    return client;
-}).catch((error) => {
-    console.error("Error connecting to mongodb");
-    console.error(error);
-});
+const connectToMongoDB = async () => {
+    await mongoose.connect(process.env.MONGODB_URI ?? "", options).then((client) => {
+        attachDatabasePool(client.connection.getClient());
+        logger.info("Connected to db");
+        return client;
+    }).catch((error) => {
+        console.error("Error connecting to mongodb");
+        console.error(error);
+    });
+};
+export default connectToMongoDB;
