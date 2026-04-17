@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import { roadmapSchema } from "./roadmap.js";
+import PostGenre from "../enums/post.genre.js";
 const postSchema = new mongoose.Schema({
     roadmap: {
         type: roadmapSchema,
@@ -23,7 +24,13 @@ const postSchema = new mongoose.Schema({
         required: true,
         ref: "User",
     },
-    createdAt: { type: Date, default: Date.now },
+    createdAt: { type: Date, default: Date.now, required: true },
+    genre: {
+        type: [String],
+        enum: Object.values(PostGenre),
+        default: [],
+        required: true,
+    }
 });
 postSchema.virtual("author", {
     ref: "User",

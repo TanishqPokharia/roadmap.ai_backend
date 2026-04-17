@@ -18,7 +18,7 @@ let V1PostRepository = class V1PostRepository {
     async getUserPostStats(userId) {
         try {
             const stats = await Post.aggregate([
-                { $match: { authorId: userId } },
+                { $match: { authorId: new mongoose.Types.ObjectId(userId) } },
                 {
                     $group: {
                         _id: null,
@@ -28,6 +28,7 @@ let V1PostRepository = class V1PostRepository {
                     },
                 },
             ]);
+            logger.info("STATS: " + stats);
             if (!stats || stats.length === 0) {
                 return {
                     data: {
@@ -80,12 +81,15 @@ let V1PostRepository = class V1PostRepository {
             };
         }
     }
-    async getPopularPosts(userId, limit, skip) {
+    async getPopularPosts(userId, limit, skip, genre) {
         try {
             const posts = await Post.find({
                 createdAt: {
                     $gte: new Date(Date.now() - 1000 * 60 * 60 * 24 * 14), // uploaded within past two weeks
                 },
+                genre: {
+                    $in: genre
+                }
             })
                 .populate("author")
                 .populate("isLiked", null, Likes, {
@@ -93,7 +97,7 @@ let V1PostRepository = class V1PostRepository {
             })
                 .limit(limit)
                 .skip(skip)
-                .sort({ likes: -1 })
+                .sort({ likes: -1, })
                 .exec();
             console.log(posts);
             return { data: posts, error: null };
@@ -129,7 +133,7 @@ let V1PostRepository = class V1PostRepository {
             };
         }
     }
-    async uploadPost(userId, roadmap, bannerImageBuffer) {
+    async uploadPost(userId, roadmap, bannerImageBuffer, genre) {
         try {
             const userInfo = await User.findById(userId, "username email ", {
                 limit: 1,
@@ -174,7 +178,8 @@ let V1PostRepository = class V1PostRepository {
             const post = new Post({
                 authorId: userId,
                 roadmap,
-                bannerImage: result.secure_url
+                bannerImage: result.secure_url,
+                genre
             });
             const savedPost = await post.save();
             // mark the roadmap as posted
@@ -189,7 +194,7 @@ let V1PostRepository = class V1PostRepository {
             };
         }
     }
-    async getPostsByTime(userId, time, limit, skip) {
+    async getPostsByTime(userId, time, limit, skip, genre) {
         try {
             const timeMap = {
                 day: 1,
@@ -201,6 +206,9 @@ let V1PostRepository = class V1PostRepository {
                 createdAt: {
                     $gte: new Date(Date.now() - 1000 * 60 * 60 * 24 * timeMap[time]),
                 },
+                genre: {
+                    $in: genre
+                }
             })
                 .populate("author")
                 .populate("isLiked", null, Likes, {

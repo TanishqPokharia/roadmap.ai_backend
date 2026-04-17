@@ -4,7 +4,10 @@ import { NextFunction, Request, Response } from "express";
 import IPostRepository from "../../../repositories/post/post.repository.interface.js";
 import { z } from "zod/v4";
 import { ValidationError } from "../../../utils/errors.js";
-import { token } from "morgan";
+import PostGenre from "../../../enums/post.genre.js";
+
+
+const allowedGenres = new Set(Object.values(PostGenre).map((e) => e.toString()));
 
 @injectable()
 class V1PostController implements IPostController {
@@ -23,17 +26,22 @@ class V1PostController implements IPostController {
 
 
   getPopularPosts = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    const { limit, skip } = req.query;
+    const { limit, skip, genre } = req.query;
+
     const userId = req.token as string;
     const popularPostsSchema = z.object({
       userId: z.string().min(1, "User ID is required"),
       limit: z.preprocess((val) => Number(val), z.number().int().nonnegative()),
       skip: z.preprocess((val) => Number(val), z.number().int().nonnegative()),
+      genre: z.array(z.string())
+        .refine(arr => arr.every(v => allowedGenres.has(v)))
+        .optional(),
     });
     const validation = popularPostsSchema.safeParse({
       userId,
       limit,
       skip,
+      genre
     });
     if (!validation.success) {
       next(new ValidationError(z.prettifyError(validation.error)));
@@ -43,7 +51,8 @@ class V1PostController implements IPostController {
     const { data: posts, error } = await this.repo.getPopularPosts(
       validated.userId,
       validated.limit,
-      validated.skip
+      validated.skip,
+      validated.genre
     );
     if (error) {
       next(error);
@@ -97,27 +106,33 @@ class V1PostController implements IPostController {
 
     const roadmap = JSON.parse(req.body.roadmap); // multipart form data is not parsed automatically by express
     const bannerImageBuffer = req.file.buffer;
+    const genre = JSON.parse(req.body.genre);
 
     if (!bannerImageBuffer) {
       next(new ValidationError("Could not process banner image"));
       return;
     }
 
+
     // validate params
-    const post = z.object({
+    const postSchema = z.object({
       userId: z.string().min(1, "User ID is required"),
       roadmap: z.object({
         id: z.string().min(1, "Roadmap ID is required"),
         title: z.string().min(1, "Roadmap title is required").max(100),
         goals: z.array(z.any()).min(1, "Roadmap must have at least one goal"),
       }),
+      genre: z.array(z.string())
+        .refine(arr => arr.every(v => allowedGenres.has(v)))
+        .optional(),
       bannerImage: z.instanceof(Buffer, { error: "Banner image is required" }),
     });
 
-    const validation = post.safeParse({
+    const validation = postSchema.safeParse({
       userId,
       roadmap,
-      bannerImage: bannerImageBuffer
+      genre,
+      bannerImageBuffer,
     });
 
     if (!validation.success) {
@@ -130,7 +145,8 @@ class V1PostController implements IPostController {
     const { data, error } = await this.repo.uploadPost(
       validated.userId,
       roadmap,
-      bannerImageBuffer
+      bannerImageBuffer,
+      validated.genre
     );
     if (error) {
       next(error);
@@ -139,7 +155,7 @@ class V1PostController implements IPostController {
     res.status(201).json({ post: data });
   };
   getPostsByTime = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    const { time, limit, skip } = req.query;
+    const { time, limit, skip, genre } = req.query;
     const userId = req.token;
 
     // validate params
@@ -149,6 +165,9 @@ class V1PostController implements IPostController {
       time: z.enum(["day", "week", "month", "year"]),
       limit: z.preprocess((val) => Number(val), z.number().int().nonnegative()),
       skip: z.preprocess((val) => Number(val), z.number().int().nonnegative()),
+      genre: z.array(z.string())
+        .refine(arr => arr.every(v => allowedGenres.has(v)))
+        .optional(),
     });
 
     const validation = postTimeSchema.safeParse({
@@ -156,6 +175,7 @@ class V1PostController implements IPostController {
       time,
       limit,
       skip,
+      genre
     });
 
     if (!validation.success) {

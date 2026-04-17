@@ -2,23 +2,25 @@ import { IPostDetails } from "../../models/post.details.js";
 import IPost from "../../models/post.js";
 import IRoadmap from "../../models/roadmap.js";
 import IUserPostStats from "../../models/user.posts.stats.js";
+import PostTime from "../../types/post.time.js";
 import DataOrError from "../../utils/data.or.error.js";
 
 
 export default interface IPostRepository {
-  getPopularPosts(userId: string, limit: number, skip: number): Promise<DataOrError<IPost[]>>;
+  getPopularPosts(userId: string, limit: number, skip: number, genre?: string[]): Promise<DataOrError<IPost[]>>;
   getPostsByTitle(
     userId: string,
     topic: string,
     limit: number,
     skip: number
   ): Promise<DataOrError<IPost[]>>;
-  uploadPost(userId: string, roadmap: IRoadmap, bannerImage: Buffer): Promise<DataOrError<string>>;
+  uploadPost(userId: string, roadmap: IRoadmap, bannerImage: Buffer, genre?: string[]): Promise<DataOrError<string>>;
   getPostsByTime(
     userId: string,
     time: PostTime,
     limit: number,
-    skip: number
+    skip: number,
+    genre?: string[]
   ): Promise<DataOrError<IPost[]>>;
   togglePostLike(userId: string, postId: string): Promise<DataOrError<string>>;
   getPostsByAuthor(
@@ -56,4 +58,3 @@ export default interface IPostRepository {
 
 }
 
-export type PostTime = "day" | "week" | "month" | "year";

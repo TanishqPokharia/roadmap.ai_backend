@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 import IRoadmap from "../models/roadmap.js";
 import roadmapGoalSchema from "./roadmap.goal.js";
 
-type RoadmapDocument = mongoose.Document & IRoadmap;
+export type RoadmapDocument = mongoose.Document & IRoadmap;
 
 export const roadmapSchema = new mongoose.Schema<RoadmapDocument>({
   userId: {

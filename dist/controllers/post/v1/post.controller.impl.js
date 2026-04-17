@@ -13,6 +13,8 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 import { inject, injectable } from "tsyringe";
 import { z } from "zod/v4";
 import { ValidationError } from "../../../utils/errors.js";
+import PostGenre from "../../../enums/post.genre.js";
+const allowedGenres = new Set(Object.values(PostGenre).map((e) => e.toString()));
 let V1PostController = class V1PostController {
     repo;
     constructor(repo) {
@@ -29,24 +31,28 @@ let V1PostController = class V1PostController {
         res.status(200).json(data);
     };
     getPopularPosts = async (req, res, next) => {
-        const { limit, skip } = req.query;
+        const { limit, skip, genre } = req.query;
         const userId = req.token;
         const popularPostsSchema = z.object({
             userId: z.string().min(1, "User ID is required"),
             limit: z.preprocess((val) => Number(val), z.number().int().nonnegative()),
             skip: z.preprocess((val) => Number(val), z.number().int().nonnegative()),
+            genre: z.array(z.string())
+                .refine(arr => arr.every(v => allowedGenres.has(v)))
+                .optional(),
         });
         const validation = popularPostsSchema.safeParse({
             userId,
             limit,
             skip,
+            genre
         });
         if (!validation.success) {
             next(new ValidationError(z.prettifyError(validation.error)));
             return;
         }
         const validated = validation.data;
-        const { data: posts, error } = await this.repo.getPopularPosts(validated.userId, validated.limit, validated.skip);
+        const { data: posts, error } = await this.repo.getPopularPosts(validated.userId, validated.limit, validated.skip, validated.genre);
         if (error) {
             next(error);
             return;
@@ -89,31 +95,36 @@ let V1PostController = class V1PostController {
         }
         const roadmap = JSON.parse(req.body.roadmap); // multipart form data is not parsed automatically by express
         const bannerImageBuffer = req.file.buffer;
+        const genre = JSON.parse(req.body.genre);
         if (!bannerImageBuffer) {
             next(new ValidationError("Could not process banner image"));
             return;
         }
         // validate params
-        const post = z.object({
+        const postSchema = z.object({
             userId: z.string().min(1, "User ID is required"),
             roadmap: z.object({
                 id: z.string().min(1, "Roadmap ID is required"),
                 title: z.string().min(1, "Roadmap title is required").max(100),
                 goals: z.array(z.any()).min(1, "Roadmap must have at least one goal"),
             }),
+            genre: z.array(z.string())
+                .refine(arr => arr.every(v => allowedGenres.has(v)))
+                .optional(),
             bannerImage: z.instanceof(Buffer, { error: "Banner image is required" }),
         });
-        const validation = post.safeParse({
+        const validation = postSchema.safeParse({
             userId,
             roadmap,
-            bannerImage: bannerImageBuffer
+            genre,
+            bannerImageBuffer,
         });
         if (!validation.success) {
             next(new ValidationError(z.prettifyError(validation.error)));
             return;
         }
         const validated = validation.data;
-        const { data, error } = await this.repo.uploadPost(validated.userId, roadmap, bannerImageBuffer);
+        const { data, error } = await this.repo.uploadPost(validated.userId, roadmap, bannerImageBuffer, validated.genre);
         if (error) {
             next(error);
             return;
@@ -121,7 +132,7 @@ let V1PostController = class V1PostController {
         res.status(201).json({ post: data });
     };
     getPostsByTime = async (req, res, next) => {
-        const { time, limit, skip } = req.query;
+        const { time, limit, skip, genre } = req.query;
         const userId = req.token;
         // validate params
         const postTimeSchema = z.object({
@@ -129,12 +140,16 @@ let V1PostController = class V1PostController {
             time: z.enum(["day", "week", "month", "year"]),
             limit: z.preprocess((val) => Number(val), z.number().int().nonnegative()),
             skip: z.preprocess((val) => Number(val), z.number().int().nonnegative()),
+            genre: z.array(z.string())
+                .refine(arr => arr.every(v => allowedGenres.has(v)))
+                .optional(),
         });
         const validation = postTimeSchema.safeParse({
             userId,
             time,
             limit,
             skip,
+            genre
         });
         if (!validation.success) {
             next(new ValidationError(z.prettifyError(validation.error)));

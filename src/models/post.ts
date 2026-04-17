@@ -1,5 +1,6 @@
 import { Types } from "mongoose";
 import IRoadmap from "./roadmap.js";
+import PostGenre from "../enums/post.genre.js";
 
 interface IPost {
   _id: Types.ObjectId;
@@ -13,7 +14,7 @@ interface IPost {
   bannerImage?: string;
   authorId: Types.ObjectId;
   createdAt: Date;
+  genre: PostGenre[];
 }
-
 
 export default IPost;

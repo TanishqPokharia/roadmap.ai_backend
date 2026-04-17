@@ -1,14 +1,13 @@
-
 import {
   v2 as cloudinary,
   UploadApiOptions,
   UploadApiResponse,
 } from "cloudinary";
 import { injectable } from "tsyringe";
-import IPostRepository, { PostTime } from "../post.repository.interface.js";
+import IPostRepository from "../post.repository.interface.js";
 import DataOrError from "../../../utils/data.or.error.js";
 import IUserPostStats from "../../../models/user.posts.stats.js";
-import Post from "../../../schemas/post.js";
+import Post, { PostDocument } from "../../../schemas/post.js";
 import { logger } from "../../../utils/logger.js";
 import { DatabaseError, NotFoundError } from "../../../utils/errors.js";
 import { IPostDetails } from "../../../models/post.details.js";
@@ -19,6 +18,7 @@ import IRoadmap from "../../../models/roadmap.js";
 import User from "../../../schemas/user.js";
 import mongoose from "mongoose";
 import Views from "../../../schemas/views.js";
+import PostTime from "../../../types/post.time.js";
 
 
 @injectable()
@@ -26,7 +26,7 @@ class V1PostRepository implements IPostRepository {
   async getUserPostStats(userId: string): Promise<DataOrError<IUserPostStats>> {
     try {
       const stats = await Post.aggregate([
-        { $match: { authorId: userId } },
+        { $match: { authorId: new mongoose.Types.ObjectId(userId) } },
         {
           $group: {
             _id: null,
@@ -36,6 +36,8 @@ class V1PostRepository implements IPostRepository {
           },
         },
       ]);
+
+      logger.info("STATS: " + stats);
       if (!stats || stats.length === 0) {
         return {
           data: {
@@ -95,12 +97,16 @@ class V1PostRepository implements IPostRepository {
     userId: string,
     limit: number,
     skip: number,
+    genre?: string[]
   ): Promise<DataOrError<IPost[]>> {
     try {
       const posts: IPost[] = await Post.find({
         createdAt: {
           $gte: new Date(Date.now() - 1000 * 60 * 60 * 24 * 14), // uploaded within past two weeks
         },
+        genre: {
+          $in: genre
+        }
       })
         .populate("author")
         .populate("isLiked", null, Likes, {
@@ -108,8 +114,9 @@ class V1PostRepository implements IPostRepository {
         })
         .limit(limit)
         .skip(skip)
-        .sort({ likes: -1 })
+        .sort({ likes: -1, })
         .exec();
+
 
       console.log(posts);
 
@@ -157,7 +164,8 @@ class V1PostRepository implements IPostRepository {
   async uploadPost(
     userId: string,
     roadmap: IRoadmap,
-    bannerImageBuffer: Buffer
+    bannerImageBuffer: Buffer,
+    genre?: string[]
   ): Promise<DataOrError<string>> {
     try {
       const userInfo = await User.findById(userId, "username email ", {
@@ -211,7 +219,8 @@ class V1PostRepository implements IPostRepository {
       const post = new Post({
         authorId: userId,
         roadmap,
-        bannerImage: result.secure_url
+        bannerImage: result.secure_url,
+        genre
       });
 
       const savedPost = await post.save();
@@ -233,7 +242,8 @@ class V1PostRepository implements IPostRepository {
     userId: string,
     time: PostTime,
     limit: number,
-    skip: number
+    skip: number,
+    genre?: string[]
   ): Promise<DataOrError<IPost[]>> {
     try {
       const timeMap: Record<PostTime, number> = {
@@ -247,6 +257,9 @@ class V1PostRepository implements IPostRepository {
         createdAt: {
           $gte: new Date(Date.now() - 1000 * 60 * 60 * 24 * timeMap[time]),
         },
+        genre: {
+          $in: genre
+        }
       })
 
         .populate("author")

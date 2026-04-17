@@ -1,8 +1,8 @@
 import mongoose from "mongoose";
 import IRoadmapSubgoal from "../models/roadmap.subgoal.js";
 
-type RoadmapSubgoalDocument = mongoose.Document & IRoadmapSubgoal;
-type RoadmapSubgoalStatusDocument = mongoose.Document & {
+export type RoadmapSubgoalDocument = mongoose.Document & IRoadmapSubgoal;
+export type RoadmapSubgoalStatusDocument = mongoose.Document & {
   completed: boolean;
   completedAt: Date | null;
 };
