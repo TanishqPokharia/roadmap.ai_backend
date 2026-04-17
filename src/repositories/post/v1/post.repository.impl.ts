@@ -36,8 +36,6 @@ class V1PostRepository implements IPostRepository {
           },
         },
       ]);
-
-      logger.info("STATS: " + stats);
       if (!stats || stats.length === 0) {
         return {
           data: {

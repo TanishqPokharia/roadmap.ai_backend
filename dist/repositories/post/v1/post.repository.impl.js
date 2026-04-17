@@ -28,7 +28,6 @@ let V1PostRepository = class V1PostRepository {
                     },
                 },
             ]);
-            logger.info("STATS: " + stats);
             if (!stats || stats.length === 0) {
                 return {
                     data: {
