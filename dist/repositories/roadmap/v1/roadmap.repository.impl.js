@@ -10,6 +10,8 @@ import Roadmap from "../../../schemas/roadmap.js";
 import { AccessDeniedError, DatabaseError, ExternalServiceError, NotFoundError } from "../../../utils/errors.js";
 import { logger } from "../../../utils/logger.js";
 import responseSchema from "../../../utils/generated.roadmap.schema.js";
+import dotenv from 'dotenv';
+dotenv.config();
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_KEY });
 let V1RoadmapRepository = class V1RoadmapRepository {
     async savePostRoadmap(userId, roadmap, postId) {

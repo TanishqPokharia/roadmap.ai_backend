@@ -17,8 +17,9 @@ import Views from "../../../schemas/views.js";
 let V1PostRepository = class V1PostRepository {
     async getUserPostStats(userId) {
         try {
+            const authorId = new mongoose.Types.ObjectId(userId);
             const stats = await Post.aggregate([
-                { $match: { authorId: new mongoose.Types.ObjectId(userId) } },
+                { $match: { authorId } },
                 {
                     $group: {
                         _id: null,
@@ -82,14 +83,17 @@ let V1PostRepository = class V1PostRepository {
     }
     async getPopularPosts(userId, limit, skip, genre) {
         try {
-            const posts = await Post.find({
+            const filters = {
                 createdAt: {
-                    $gte: new Date(Date.now() - 1000 * 60 * 60 * 24 * 14), // uploaded within past two weeks
+                    $gte: new Date(Date.now() - 1000 * 60 * 60 * 24 * 14),
                 },
-                genre: {
+            };
+            if (genre && genre?.length !== 0) {
+                filters.genre = {
                     $in: genre
-                }
-            })
+                };
+            }
+            const posts = await Post.find(filters)
                 .populate("author")
                 .populate("isLiked", null, Likes, {
                 userId
@@ -98,7 +102,7 @@ let V1PostRepository = class V1PostRepository {
                 .skip(skip)
                 .sort({ likes: -1, })
                 .exec();
-            console.log(posts);
+            logger.info(posts);
             return { data: posts, error: null };
         }
         catch (error) {
@@ -201,14 +205,17 @@ let V1PostRepository = class V1PostRepository {
                 month: 30,
                 year: 365,
             };
-            const posts = await Post.find({
+            const filters = {
                 createdAt: {
                     $gte: new Date(Date.now() - 1000 * 60 * 60 * 24 * timeMap[time]),
                 },
-                genre: {
+            };
+            if (genre && genre?.length !== 0) {
+                filters.genre = {
                     $in: genre
-                }
-            })
+                };
+            }
+            const posts = await Post.find(filters)
                 .populate("author")
                 .populate("isLiked", null, Likes, {
                 userId

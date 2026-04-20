@@ -16,7 +16,7 @@ import IPost from "../../../models/post.js";
 import Likes from "../../../schemas/likes.js";
 import IRoadmap from "../../../models/roadmap.js";
 import User from "../../../schemas/user.js";
-import mongoose from "mongoose";
+import mongoose, { RootFilterQuery } from "mongoose";
 import Views from "../../../schemas/views.js";
 import PostTime from "../../../types/post.time.js";
 
@@ -25,8 +25,9 @@ import PostTime from "../../../types/post.time.js";
 class V1PostRepository implements IPostRepository {
   async getUserPostStats(userId: string): Promise<DataOrError<IUserPostStats>> {
     try {
+      const authorId = new mongoose.Types.ObjectId(userId);
       const stats = await Post.aggregate([
-        { $match: { authorId: new mongoose.Types.ObjectId(userId) } },
+        { $match: { authorId } },
         {
           $group: {
             _id: null,
@@ -57,7 +58,6 @@ class V1PostRepository implements IPostRepository {
   }
   async getPostDetails(userId: string, postId: string): Promise<DataOrError<IPostDetails>> {
     try {
-
       // find the post
       const post = await Post.findById(postId).populate("author");
       if (!post) {
@@ -98,14 +98,18 @@ class V1PostRepository implements IPostRepository {
     genre?: string[]
   ): Promise<DataOrError<IPost[]>> {
     try {
-      const posts: IPost[] = await Post.find({
+      const filters: RootFilterQuery<PostDocument> = {
         createdAt: {
-          $gte: new Date(Date.now() - 1000 * 60 * 60 * 24 * 14), // uploaded within past two weeks
+          $gte: new Date(Date.now() - 1000 * 60 * 60 * 24 * 14),
         },
-        genre: {
+      };
+
+      if (genre && genre?.length !== 0) {
+        filters.genre = {
           $in: genre
         }
-      })
+      }
+      const posts: IPost[] = await Post.find(filters)
         .populate("author")
         .populate("isLiked", null, Likes, {
           userId
@@ -116,7 +120,7 @@ class V1PostRepository implements IPostRepository {
         .exec();
 
 
-      console.log(posts);
+      logger.info(posts);
 
       return { data: posts, error: null };
     } catch (error) {
@@ -251,15 +255,22 @@ class V1PostRepository implements IPostRepository {
         year: 365,
       };
 
-      const posts = await Post.find({
+
+      const filters: RootFilterQuery<PostDocument> = {
         createdAt: {
           $gte: new Date(Date.now() - 1000 * 60 * 60 * 24 * timeMap[time]),
         },
-        genre: {
+      };
+
+      if (genre && genre?.length !== 0) {
+        filters.genre = {
           $in: genre
         }
-      })
+      }
 
+      const posts = await Post.find(
+        filters
+      )
         .populate("author")
         .populate("isLiked", null, Likes, {
           userId

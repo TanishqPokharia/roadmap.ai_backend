@@ -12,7 +12,9 @@ import { AccessDeniedError, DatabaseError, ExternalServiceError, NotFoundError }
 import { logger } from "../../../utils/logger.js";
 import IRoadmapMetaData from "../../../models/roadmap.metadata.js";
 import responseSchema from "../../../utils/generated.roadmap.schema.js";
+import dotenv from 'dotenv';
 
+dotenv.config();
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_KEY });
 
@@ -213,6 +215,7 @@ class V1RoadmapRepository implements IRoadmapRepository {
     try {
       const contentPrompt = process.env.CONTENT_PROMPT as string;
       const systemInstruction = process.env.SYSTEM_INSTRUCTION as string;
+
       const response = await ai.models.generateContent({
         model: "gemini-2.5-flash",
         contents: `Generate a concise but comprehensive roadmap for learning: "${topic}". ${contentPrompt}. Focus on essential milestones and key learning paths.`,

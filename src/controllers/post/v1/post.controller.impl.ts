@@ -33,10 +33,15 @@ class V1PostController implements IPostController {
       userId: z.string().min(1, "User ID is required"),
       limit: z.preprocess((val) => Number(val), z.number().int().nonnegative()),
       skip: z.preprocess((val) => Number(val), z.number().int().nonnegative()),
-      genre: z.array(z.string())
+      genre: z.preprocess((val) => {
+        if (!val) return [];
+        if (Array.isArray(val)) return val;
+        return [val];
+      }, z.array(z.string())
         .refine(arr => arr.every(v => allowedGenres.has(v)))
-        .optional(),
+        .optional()),
     });
+
     const validation = popularPostsSchema.safeParse({
       userId,
       limit,
@@ -48,6 +53,8 @@ class V1PostController implements IPostController {
       return;
     }
     const validated = validation.data;
+
+
     const { data: posts, error } = await this.repo.getPopularPosts(
       validated.userId,
       validated.limit,
@@ -122,9 +129,13 @@ class V1PostController implements IPostController {
         title: z.string().min(1, "Roadmap title is required").max(100),
         goals: z.array(z.any()).min(1, "Roadmap must have at least one goal"),
       }),
-      genre: z.array(z.string())
+      genre: z.preprocess((val) => {
+        if (!val) return [];
+        if (Array.isArray(val)) return val;
+        return [val];
+      }, z.array(z.string())
         .refine(arr => arr.every(v => allowedGenres.has(v)))
-        .optional(),
+        .optional()),
       bannerImage: z.instanceof(Buffer, { error: "Banner image is required" }),
     });
 
@@ -165,9 +176,13 @@ class V1PostController implements IPostController {
       time: z.enum(["day", "week", "month", "year"]),
       limit: z.preprocess((val) => Number(val), z.number().int().nonnegative()),
       skip: z.preprocess((val) => Number(val), z.number().int().nonnegative()),
-      genre: z.array(z.string())
+      genre: z.preprocess((val) => {
+        if (!val) return [];
+        if (Array.isArray(val)) return val;
+        return [val];
+      }, z.array(z.string())
         .refine(arr => arr.every(v => allowedGenres.has(v)))
-        .optional(),
+        .optional()),
     });
 
     const validation = postTimeSchema.safeParse({
@@ -188,7 +203,8 @@ class V1PostController implements IPostController {
       validated.userId,
       validated.time,
       validated.limit,
-      validated.skip
+      validated.skip,
+      validated.genre
     );
 
     if (error) {
